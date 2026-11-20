@@ -9,6 +9,7 @@ const BASE = process.env.HK_BASE || 'https://harekrishna.ru';
 const DATA = path.resolve('data');
 const ITEMS = path.join(DATA, 'items');
 const DEBUG = process.argv.includes('--debug');
+const REFRESH = process.argv.includes('--refresh');
 const MAX_NEW_ITEMS = Number(process.env.MAX_NEW_ITEMS || 40);
 const PER_LIST = 12;
 const PAUSE_MS = Number(process.env.PAUSE_MS || 1500);
@@ -56,28 +57,44 @@ function slugOf(url) {
   return last.toLowerCase().replace(/[^a-z0-9-]+/g, '-').slice(0, 120);
 }
 
-// Listing pages (/news/video/ etc.): article links with the nearest date and author text.
+// Titles on harekrishna.ru: <b>«Title».</b> Author. Date | Place | <b>English</b>
+const AUTHOR_RE = /^(.+?(?:Махараджа|Махарадж|Прабху|Даси|Тхакура|Тхакур|Госвами|Гхош|Деви|Maharaj|Prabhu))(?=[.,;]|\s*$)/;
+function splitTitle($, $a) {
+  const full = clean($a.text());
+  const first = full.split('|')[0].trim();
+  let bold = clean($a.find('b').map((_, b) => clean($(b).text())).get().filter(t => t && first.includes(t)).join(''));
+  let title = stripQuotes(bold.replace(/^«\s*/, '«')) || '';
+  title = title.replace(/^«|»\.?$/g, '').replace(/\.$/, '').trim();
+  if (title.length < 3) { const m = /^«([^»]+)»/.exec(first); title = m ? m[1] : stripQuotes(first); }
+  let rest = first;
+  const idx = rest.indexOf(title); if (idx >= 0) rest = rest.slice(idx + title.length);
+  rest = rest.replace(/^[»".\s]+/, '').trim();
+  const am = AUTHOR_RE.exec(rest);
+  const author = am && am[1].length < 80 ? clean(am[1]) : '';
+  const subtitle = clean(author ? rest.slice(am[0].length).replace(/^[.,\s]+/, '') : rest).replace(/\.$/, '');
+  return { title, author, subtitle };
+}
+const bgUrl = style => { const m = /url\(\s*['"]?([^'")]+)['"]?\s*\)/.exec(style || ''); return m ? absUrl(m[1]) : ''; };
+
 function parseList($) {
   const seen = new Set(), out = [];
-  $('a[href]').each((_, a) => {
-    const href = $(a).attr('href');
-    const u = absUrl(href); if (!u || !u.startsWith(BASE)) return;
-    const p = new URL(u).pathname;
-    if (!ARTICLE_RE.test(p) || seen.has(u)) return;
-    const title = stripQuotes($(a).text());
-    if (title.length < 3) return;
-    // climb to a container that holds a date
-    let box = $(a).parent(), d = '';
-    for (let i = 0; i < 5 && box.length; i++) { d = isoDate(box.text()); if (d) break; box = box.parent(); }
-    let author = '';
-    if (box.length) {
-      const t = clean(box.text().replace($(a).text(), ''));
-      const m = /((?:Шрила|Шрипад|Шримати|Шриюкта|Срила|Srila|Sripad)[^,;|]{3,60}?(?:Махарадж|Maharaj|Даси|Прабху|Тхакур|Госвами)|[А-ЯЁ][а-яё]+ (?:Прабху|Деви Даси))/.exec(t);
-      if (m) author = clean(m[1]);
-    }
+  const add = (u, $a, $box) => {
+    if (!u || !u.startsWith(BASE) || seen.has(u) || !ARTICLE_RE.test(new URL(u).pathname)) return;
+    const t = splitTitle($, $a); if (t.title.length < 3) return;
+    const date = isoDate($box.find('span').first().text()) || isoDate($box.text());
+    const image = bgUrl($box.find('img[style*="url("]').attr('style'));
     seen.add(u);
-    out.push({ title, url: u, date: d, author, slug: slugOf(u) });
+    out.push({ title: t.title, subtitle: t.subtitle, url: u, date, author: t.author, image, slug: slugOf(u) });
+  };
+  // Known layout: a thumbnail link (.news_element__link) and a text link in the same row.
+  $('a.news_element__link').each((_, th) => {
+    const u = absUrl($(th).attr('href'));
+    let $box = $(th).closest('.row, p'); if (!$box.length) $box = $(th).parent();
+    const $a = $box.find('a[href]').not('.news_element__link').filter((_, a) => absUrl($(a).attr('href')) === u).first();
+    if ($a.length) add(u, $a, $box);
   });
+  // Fallback for other layouts.
+  if (out.length < 3) $('a[href]').each((_, a) => { let $box = $(a).parent(); for (let i = 0; i < 3 && !isoDate($box.text()); i++) $box = $box.parent(); add(absUrl($(a).attr('href')), $(a), $box); });
   return out.slice(0, PER_LIST);
 }
 
@@ -91,33 +108,32 @@ function sectionAfter($, heading) {
 }
 function parseHome($) {
   const home = {};
-  const guru = sectionAfter($, 'Слово Гуру');
-  if (guru) {
-    const text = clean(guru.text()).replace(/^.*?Слово Гуру\s*/, '');
-    const src = /«[^»]+»,?\s*гл\.\s*\d+/.exec(text);
-    const quote = clean(text.split(/Шрила Б\.|Шрила Бхакти/)[0]);
-    if (quote.length > 20) home.guru = { text: quote, author: 'Шрила Бхакти Сундар Говинда Дев-Госвами Махарадж', source: src ? src[0] : '' };
+  const q = $('.quote').first();
+  if (q.length) {
+    const text = clean(q.find('p').not('.quote-source').text());
+    const src = q.find('.quote-source');
+    src.find('br').replaceWith(' | ');
+    const parts = clean(src.text()).split('|').map(clean);
+    if (text.length > 20) home.guru = { text, author: parts[0] || '', source: parts[1] || '' };
+  } else {
+    const guru = sectionAfter($, 'Слово Гуру');
+    if (guru) { const t = clean(guru.text()).replace(/^.*?Слово Гуру\s*/, ''); if (t.length > 20) home.guru = { text: t.split('Шрила')[0].trim(), author: '', source: '' }; }
   }
-  const cal = sectionAfter($, 'Вайшнавский календарь');
-  if (cal) {
-    const days = [];
-    cal.find('li, p, div, tr').each((_, el) => {
-      const t = clean($(el).text()); const d = isoDate(t) || isoDate(t.replace(/^(\d{1,2})\s+(\S+)/, '$1 $2 ' + new Date().getFullYear()));
-      if (!d || t.length > 600) return;
-      const items = t.replace(DATE_RE, '').split(/(?<=\.)\s+/).map(s => clean(s).replace(/^\((пн|вт|ср|чт|пт|сб|вс)\)\s*/i, '')).filter(s => s.length > 3 && !/^\(?(пн|вт|ср|чт|пт|сб|вс)\)?$/i.test(s));
-      if (items.length && !days.find(x => x.date === d)) days.push({ date: d, items });
-    });
-    if (days.length >= 3) home.calendar = days;
-  }
-  const newsBox = sectionAfter($, 'Новости');
-  if (newsBox) {
-    const items = parseList(cheerio.load(newsBox.html() || ''));
-    if (items.length >= 3) home.news = items;
-  }
-  const banner = $('a[href*="/tag/"]').filter((_, a) => clean($(a).text()).length > 10 || $(a).find('img[alt]').length).first();
+  const days = [];
+  $('.calendar p.date, p.date[title]').each((_, el) => {
+    const d = isoDate($(el).attr('title') || '');
+    const $c = $(el).clone(); $c.find('b').first().remove();
+    const items = clean($c.text()).split(/(?<=\.)\s+/).map(clean).filter(s => s.length > 2);
+    if (d && items.length && !days.find(x => x.date === d)) days.push({ date: d, items });
+  });
+  if (days.length >= 2) home.calendar = days;
+  const newsBox = $('h2').filter((_, h) => clean($(h).text()) === 'Новости').first().closest('.content-block');
+  if (newsBox.length) { const items = parseList(cheerio.load(newsBox.html() || '')); if (items.length >= 3) home.news = items; }
+  const banner = $('a[href*="/tag/"]').filter((_, a) => $(a).find('img[alt]').length || clean($(a).text()).length > 10).first();
   if (banner.length) {
-    const title = clean($(banner).text()) || clean($(banner).find('img').attr('alt'));
-    if (title) home.banner = { title, url: absUrl(banner.attr('href')) };
+    const title = clean($(banner).find('img').attr('alt')) || clean($(banner).text());
+    const image = absUrl($(banner).find('img').attr('src') || '');
+    if (title) home.banner = { title, url: absUrl(banner.attr('href')), image: image || '' };
   }
   return home;
 }
@@ -156,22 +172,42 @@ function mainContent($) {
 }
 function parseItem($, url) {
   const media = { audio: [], video: [], images: [] };
-  $('audio[src], audio source[src], source[src]').each((_, el) => { const u = absUrl($(el).attr('src')); if (u && /\.(mp3|m4a|ogg)(\?|$)/i.test(u)) media.audio.push(u); });
-  $('a[href]').each((_, a) => { const u = absUrl($(a).attr('href')); if (u && /\.(mp3|m4a)(\?|$)/i.test(u)) media.audio.push(u); });
-  $('iframe[src], a[href*="youtu"]').each((_, el) => {
+  const root = $('.news-body').first().length ? $('.news-body').first() : mainContent($);
+  const scope = root || $('body');
+  scope.find('audio[src], audio source[src]').each((_, el) => { const u = absUrl($(el).attr('src')); if (u) media.audio.push(u); });
+  scope.find('a[href]').each((_, a) => { const u = absUrl($(a).attr('href')); if (u && /\.(mp3|m4a)(\?|$)/i.test(u)) media.audio.push(u); });
+  scope.find('video source[src], video[src]').each((_, el) => { const u = absUrl($(el).attr('src')); if (u && /\.(mp4|webm)(\?|$)/i.test(u)) media.video.push({ type: 'file', src: u }); });
+  scope.find('iframe[src], a[href*="youtu"]').each((_, el) => {
     const src = $(el).attr('src') || $(el).attr('href') || '';
-    const yt = /(?:youtube\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)([\w-]{11})/.exec(src);
+    const yt = /(?:youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)([\w-]{11})/.exec(src);
     if (yt) media.video.push({ type: 'youtube', id: yt[1] });
     else if (/rutube\.ru\/play\/embed\/|vk\.com\/video_ext/.test(src)) media.video.push({ type: 'iframe', src: absUrl(src) });
   });
-  const root = mainContent($);
-  const html = root ? sanitize($, root) : '';
-  if (root) root.find('img[src]').each((_, img) => { const u = absUrl($(img).attr('src')); if (u) media.images.push(u); });
+  let html = '';
+  if (root) {
+    root.find('iframe, video, audio, object, embed, script, style, a[download]').remove();
+    root.find('a[href*="get.adobe.com"]').each((_, a) => { const $p = $(a).closest('p, div'); ($p.length && !$p.is(root) ? $p : $(a)).remove(); });
+    root.find('small').filter((_, el) => /скачать/i.test($(el).text())).remove();
+    root.find('img[src]').each((_, img) => { const u = absUrl($(img).attr('src')); if (u && !/\/local\/templates\//.test(u)) media.images.push(u); });
+    const t0 = h1Title($);
+    root.find('h2, h3').each((_, h) => { const ht = stripQuotes($(h).text()); if (ht && (ht === t0.title || ht === t0.author || authorsOf($).includes(ht))) $(h).remove(); });
+    root.find('p').each((_, el) => { const pt = clean($(el).text()).replace(/\u00a0/g, ''); if (/^(Russian|English|Русский)$/i.test(pt) || (!pt && !$(el).find('img').length)) $(el).remove(); });
+    html = sanitize($, root).replace(/Get the Flash Player to see this player\.?/gi, '').replace(/\s*\n\s*/g, '\n').trim();
+    if (/Основатель-ачарья|2003–20\d\d\s*©/.test(html) && html.length < 1500) html = '';
+  }
+  const authors = authorsOf($);
+  const t = h1Title($);
   const uniq = a => [...new Map(a.map(x => [JSON.stringify(x), x])).values()];
-  const title = stripQuotes($('h1').first().text()) || stripQuotes($('title').text());
-  const ogImage = absUrl($('meta[property="og:image"]').attr('content') || '');
-  return { title, url, date: isoDate(clean($('body').text()).slice(0, 4000)), html,
-    audio: uniq(media.audio), video: uniq(media.video).slice(0, 3), images: uniq(media.images).slice(0, 12), image: ogImage || media.images[0] || '' };
+  return { title: t.title, subtitle: t.subtitle, author: authors.join(', ') || t.author, url, html,
+    audio: uniq(media.audio), video: uniq(media.video).slice(0, 3), images: uniq(media.images).slice(0, 24) };
+}
+function h1Title($) { const h1 = $('h1').first(); return h1.length ? splitTitle($, h1) : { title: stripQuotes($('title').text()), subtitle: '', author: '' }; }
+function authorsOf($) {
+  const authors = [];
+  $('li').filter((_, li) => /Автор:/.test($(li).find('.tag-prefix').text())).each((_, li) => {
+    $(li).find('.tag-meat a.tag').each((_, a) => { const t = clean($(a).clone().children('small').remove().end().text()); if (t && !/^\(\d+\)$/.test(t) && !authors.includes(t)) authors.push(t); });
+  });
+  return authors;
 }
 
 async function readJson(file, fallback) { try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch { return fallback; } }
@@ -201,23 +237,25 @@ async function main() {
   } catch (e) { report.push(`home: kept old (${e.message})`); }
 
   // Article pages: fetch the ones we don't have yet.
-  const all = ['video', 'audio', 'read', 'news'].flatMap(k => (site[k] || []).map(x => ({ ...x, kind: k })));
+  const all = ['video', 'audio', 'read', 'news'].flatMap(k => (site[k] || []).map(x => Object.assign(x, { kind: k })));
   let fetched = 0;
   for (const it of all) {
     if (!it.url || !it.url.startsWith(BASE)) continue;
     it.slug = it.slug || slugOf(it.url);
     const file = path.join(ITEMS, it.slug + '.json');
-    if (await readJson(file, null)) continue;
+    const existing = await readJson(file, null);
+    if (existing && !REFRESH) { if (existing.author && !it.author) it.author = existing.author; continue; }
     if (fetched >= MAX_NEW_ITEMS) break;
     try {
       const $ = cheerio.load(await get(it.url));
       const item = parseItem($, it.url);
       if (DEBUG && fetched === 0) console.log('--- first item:', JSON.stringify(item).slice(0, 2500));
-      await fs.writeFile(file, JSON.stringify({ ...item, title: it.title || item.title, date: it.date || item.date, author: it.author || '', kind: it.kind, fetchedAt: new Date().toISOString() }, null, 1));
+      await fs.writeFile(file, JSON.stringify({ ...item, title: item.title || it.title, subtitle: item.subtitle || it.subtitle || '', date: it.date || '', author: item.author || it.author || '', image: it.image || item.images[0] || '', kind: it.kind, fetchedAt: new Date().toISOString() }, null, 1));
+      if (item.author) it.author = item.author;
       fetched++;
     } catch (e) { report.push(`item ${it.slug}: ${e.message}`); }
   }
-  for (const k of ['video', 'audio', 'read', 'news']) (site[k] || []).forEach(x => { x.slug = x.slug || (x.url && x.url.startsWith(BASE) ? slugOf(x.url) : ''); });
+  for (const k of ['video', 'audio', 'read', 'news']) (site[k] || []).forEach(x => { delete x.kind; x.slug = x.slug || (x.url && x.url.startsWith(BASE) ? slugOf(x.url) : ''); });
   const gotSomething = report.some(r => !/kept old/.test(r) && !r.startsWith('item ')) || fetched > 0;
   if (gotSomething) site.fetchedAt = new Date().toISOString();
   else { console.log(report.concat('nothing new; data left unchanged').join('\n')); process.exitCode = 1; return; }

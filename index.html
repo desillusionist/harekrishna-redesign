@@ -242,6 +242,8 @@ blockquote.guru footer{color:var(--on-hero-2);font-size:15px}
 .audio-player .meta{justify-content:space-between}
 .reader-skel{display:grid;gap:10px}
 .video-frame{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:var(--r);overflow:hidden;background:#000}
+.video-frame video{position:absolute;inset:0;width:100%;height:100%;background:#000}
+.article-text .tc{display:inline-block;font:600 12px var(--font-body);font-style:normal;color:var(--indigo);background:var(--indigo-soft);border-radius:6px;padding:1px 6px;font-variant-numeric:tabular-nums}
 .video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .audio-player audio{width:100%;margin-top:12px}
 .article-text{font-size:18px;line-height:1.7}
@@ -469,7 +471,7 @@ const DATA = {
 };
 
 const TH = [['#1B2F5E','#3A63B0'],['#6B2E10','#D9741A'],['#1F4A3A','#3F8A69'],['#3E2460','#7A54A8'],['#5A3A0A','#C48A2A'],['#163A52','#2F7AA8']];
-const thumb = (i,dur) => `<div class="thumb" style="background:linear-gradient(135deg,${TH[i%6][0]},${TH[i%6][1]})">
+const thumb = (i,dur,img) => `<div class="thumb" style="background:${img?`center/cover no-repeat url('${esc(img)}'),`:''}linear-gradient(135deg,${TH[i%6][0]},${TH[i%6][1]})">
   <svg viewBox="0 0 100 56" style="position:absolute;inset:0;width:100%;height:100%;opacity:.18" aria-hidden="true"><g fill="none" stroke="#fff" stroke-width=".6">${[10,18,26,34].map(r=>`<circle cx="78" cy="28" r="${r}"/>`).join('')}</g></svg>
   <span class="play">${I.play}</span>${dur?`<span class="dur">${dur}</span>`:''}</div>`;
 
@@ -478,7 +480,7 @@ const safeUrl = u => /^https:\/\/harekrishna\.ru\//.test(u||'') ? u : null;
 const REG = new Map();
 const reg = (x,kind) => { const k = kind+'|'+(x.url||x.t); REG.set(k,{...x,kind}); return k; };
 const linkAttrs = (x,kind) => x.slug ? `href="#a-${esc(x.slug)}" data-key="${esc(reg(x,kind))}"` : `href="#item" data-key="${esc(reg(x,kind))}"`;
-const videoCard = (v,i) => `<a class="card" ${linkAttrs(v,'video')}>${thumb(i,v.dur)}<h3>${esc(v.t)}</h3><div class="meta"><time>${fmt(v.d)}</time>${v.a?`<span>${esc(v.a)}</span>`:''}</div></a>`;
+const videoCard = (v,i) => `<a class="card" ${linkAttrs(v,'video')}>${thumb(i,v.dur,v.img)}<h3>${esc(v.t)}</h3><div class="meta"><time>${fmt(v.d)}</time>${v.a?`<span>${esc(v.a)}</span>`:''}</div></a>`;
 const row = (x,kind) => `<a class="row" ${linkAttrs(x,kind)}><span class="ic ${kind==='audio'?'saf':''}">${I[kind]}</span><span class="t">${esc(x.t)}${x.dur||x.a?`<span class="meta" style="font-weight:400;margin-top:2px">${esc(x.a||x.dur)}</span>`:''}</span><time>${fmt(x.d)}</time></a>`;
 
 function mediaBlock(sel, id){
@@ -661,7 +663,7 @@ article(){
   return `<section class="page-head"><div class="wrap">
     <div class="crumbs"><a href="#home">Главная</a><span>/</span><a href="#${K[2]}">${K[1]}</a></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill blue">${K[0]}</span>${o.d?`<span class="pill">${fmt(o.d)}</span>`:''}</div>
-    <h1 id="artTitle">${esc(o.t)}</h1>${o.a?`<p class="muted" style="font-size:17px">${esc(o.a)}</p>`:''}</div></section>
+    <h1 id="artTitle">${esc(o.t)}</h1>${o.a?`<p style="font-size:17px;font-weight:600">${esc(o.a)}</p>`:''}${o.sub?`<p class="muted">${esc(o.sub)}</p>`:''}</div></section>
   <section class="section"><div class="wrap split"><div style="min-width:0;display:grid;gap:22px" id="artBody">
     <div class="reader-skel" aria-label="Загрузка">${[96,100,88,100,72,0,100,94,100,60].map(w=>w?`<span style="width:${w}%"></span>`:'<i></i>').join('')}</div>
   </div>
@@ -721,7 +723,7 @@ function normCalendar(days){
 function applyDoc(id, data){
   if(!data) return;
   if(['video','audio','read','news'].includes(id) && Array.isArray(data.items) && data.items.length){
-    DATA[id] = data.items.map(x=>({t:x.title, url:x.url, d:x.date, a:x.author||'', slug:x.slug||''}));
+    DATA[id] = data.items.map(x=>({t:x.title, url:x.url, d:x.date, a:x.author||'', slug:x.slug||'', sub:x.subtitle||'', img:/^https:\/\/(media\.)?harekrishna\.ru\//.test(x.image||'')?x.image:''}));
   } else if(id==='home'){
     if(data.banner && data.banner.title) state.home.banner = data.banner;
     if(data.guru && data.guru.text) state.home.guru = data.guru;
@@ -766,10 +768,11 @@ async function loadArticle(slug){
   } else {
     (d.video||[]).forEach(v=>{
       if(v.type==='youtube' && /^[\w-]{11}$/.test(v.id)) html += `<div class="video-frame"><iframe src="https://www.youtube-nocookie.com/embed/${v.id}" title="${esc(d.title||o.t)}" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>`;
+      else if(v.type==='file' && /^https:\/\/(media\.)?harekrishna\.ru\//.test(v.src||'')) html += `<div class="video-frame"><video controls preload="metadata" playsinline src="${esc(v.src)}"></video></div>`;
       else if(v.type==='iframe' && /^https:\/\/(rutube\.ru|vk\.com)\//.test(v.src||'')) html += `<div class="video-frame"><iframe src="${esc(v.src)}" title="${esc(d.title||o.t)}" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe></div>`;
     });
     (d.audio||[]).slice(0,6).forEach((u,i)=>{ if(/^https?:\/\//.test(u)) html += `<div class="panel audio-player"><div style="display:flex;gap:12px;align-items:center"><span class="ic saf" style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--saffron-soft);color:var(--saffron);flex:none">${I.audio}</span><b style="min-width:0">${esc((d.audio.length>1?`Часть ${i+1}. `:'')+(d.title||o.t))}</b></div><audio controls preload="none" src="${esc(u)}"></audio></div>`; });
-    if(d.html) html += `<article class="prose article-text">${d.html}</article>`;
+    if(d.html) html += `<article class="prose article-text">${d.html.replace(/#(\d{1,2}:\d{2}:\d{2})#/g,'<span class="tc">$1</span>')}</article>`;
     else if(!html) html += `<div class="panel"><p>У этого материала нет текста для предпросмотра.</p></div>`;
     html += `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-copy="1">Скопировать ссылку</button>${orig?`<a class="btn" href="${esc(orig)}" target="_blank" rel="noopener">Источник: harekrishna.ru ${I.ext}</a>`:''}</div>`;
   }
