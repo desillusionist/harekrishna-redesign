@@ -156,8 +156,15 @@ blockquote.guru footer{color:var(--on-hero-2);font-size:15px}
 @media (min-width:640px){.cards{grid-template-columns:repeat(2,1fr)}}
 @media (min-width:1000px){.cards.c3{grid-template-columns:repeat(3,1fr)}}
 .card{display:grid;gap:10px;text-decoration:none;color:inherit;min-width:0;align-content:start}
+.thumb-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.row-thumb{position:relative;width:72px;height:54px;border-radius:10px;overflow:hidden;background:var(--surface-2);flex:none}
+.row-img{width:100%;height:100%;object-fit:cover;display:block}
+.row-thumb .badge{position:absolute;right:3px;bottom:3px;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;background:rgba(255,255,255,.92);color:var(--indigo)}
+.row-thumb .badge.saf{color:var(--saffron)}
+.row-thumb .badge svg{width:14px;height:14px}
+.art-hero{width:100%;max-height:440px;object-fit:cover;border-radius:var(--r);background:var(--surface-2)}
 .thumb{aspect-ratio:16/9;max-width:100%;border-radius:12px;position:relative;overflow:hidden;display:grid;place-items:center}
-.thumb .play{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;color:#1E3A72}
+.thumb .play{position:relative;z-index:1;box-shadow:0 4px 14px rgba(0,0,0,.25);width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;color:#1E3A72}
 .thumb .dur{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 6px;border-radius:6px;font-variant-numeric:tabular-nums}
 .card h3{font-family:var(--font-body);font-weight:600;font-size:16px;line-height:1.35}
 .card:hover h3{color:var(--indigo);text-decoration:underline}
@@ -473,17 +480,39 @@ const DATA = {
 };
 
 const TH = [['#1B2F5E','#3A63B0'],['#6B2E10','#D9741A'],['#1F4A3A','#3F8A69'],['#3E2460','#7A54A8'],['#5A3A0A','#C48A2A'],['#163A52','#2F7AA8']];
-const thumb = (i,dur,img) => `<div class="thumb" style="background:${img?`center/cover no-repeat url('${esc(img)}'),`:''}linear-gradient(135deg,${TH[i%6][0]},${TH[i%6][1]})">
-  <svg viewBox="0 0 100 56" style="position:absolute;inset:0;width:100%;height:100%;opacity:.18" aria-hidden="true"><g fill="none" stroke="#fff" stroke-width=".6">${[10,18,26,34].map(r=>`<circle cx="78" cy="28" r="${r}"/>`).join('')}</g></svg>
+const okImg = u => /^https:\/\/((media\.)?harekrishna\.ru|i\.ytimg\.com)\//.test(u||'');
+const firstImg = x => (x.thumbs&&x.thumbs[0]) || x.img || '';
+const imgTag = (x, cls, eager) => { const c = (x.thumbs&&x.thumbs.length?x.thumbs:[x.img]).filter(okImg); if(!c.length) return '';
+  return `<img class="${cls}" src="${esc(c[0])}" data-cands="${esc(JSON.stringify(c))}" alt="" ${eager?'':'loading="lazy"'} decoding="async" onerror="this.dataset.err=1;pickBest(this,true)">`; };
+const thumb = (i,dur,x) => `<div class="thumb" style="background:linear-gradient(135deg,${TH[i%6][0]},${TH[i%6][1]})">
+  ${x&&imgTag(x,'thumb-img')||`<svg viewBox="0 0 100 56" style="position:absolute;inset:0;width:100%;height:100%;opacity:.18" aria-hidden="true"><g fill="none" stroke="#fff" stroke-width=".6">${[10,18,26,34].map(r=>`<circle cx="78" cy="28" r="${r}"/>`).join('')}</g></svg>`}
   <span class="play">${I.play}</span>${dur?`<span class="dur">${dur}</span>`:''}</div>`;
+
+/* Pick the sharpest available picture: load each candidate once, keep the largest real one
+   (YouTube returns a 120px placeholder when a size is missing). */
+const BEST = new Map();
+function loadSize(u){ return new Promise(r=>{ const im=new Image(); im.onload=()=>r({u,w:im.naturalWidth,h:im.naturalHeight}); im.onerror=()=>r({u,w:0,h:0}); im.src=u; }); }
+async function pickBest(el, failed){
+  const c = JSON.parse(el.dataset.cands||'[]'); if(!c.length) return;
+  const key = c.join('|');
+  if(!BEST.has(key)) BEST.set(key, Promise.all(c.map(loadSize)).then(rs=>{
+    const ok = rs.filter(r=>r.w>=200 && r.h>=120 && r.w/r.h<3 && r.h/r.w<2);
+    ok.sort((a,b)=>(b.w*b.h)-(a.w*a.h));
+    return (ok[0] || rs.filter(r=>r.w).sort((a,b)=>(b.w*b.h)-(a.w*a.h))[0] || {}).u || '';
+  }));
+  const best = await BEST.get(key);
+  if(best && el.getAttribute('src')!==best) el.src = best;
+  else if(!best && failed) el.remove();
+}
+function upgradeImages(){ document.querySelectorAll('img[data-cands]:not([data-picked])').forEach(el=>{ el.dataset.picked=1; pickBest(el); }); }
 
 const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeUrl = u => /^https:\/\/harekrishna\.ru\//.test(u||'') ? u : null;
 const REG = new Map();
 const reg = (x,kind) => { const k = kind+'|'+(x.url||x.t); REG.set(k,{...x,kind}); return k; };
 const linkAttrs = (x,kind) => x.slug ? `href="#a-${esc(x.slug)}" data-key="${esc(reg(x,kind))}"` : `href="#item" data-key="${esc(reg(x,kind))}"`;
-const videoCard = (v,i) => `<a class="card" ${linkAttrs(v,'video')}>${thumb(i,v.dur,v.img)}<h3>${esc(v.t)}</h3><div class="meta"><time>${fmt(v.d)}</time>${v.a?`<span>${esc(v.a)}</span>`:''}</div></a>`;
-const row = (x,kind) => `<a class="row" ${linkAttrs(x,kind)}><span class="ic ${kind==='audio'?'saf':''}">${I[kind]}</span><span class="t">${esc(x.t)}${x.dur||x.a?`<span class="meta" style="font-weight:400;margin-top:2px">${esc(x.a||x.dur)}</span>`:''}</span><time>${fmt(x.d)}</time></a>`;
+const videoCard = (v,i) => `<a class="card" ${linkAttrs(v,'video')}>${thumb(i,v.dur,v)}<h3>${esc(v.t)}</h3><div class="meta"><time>${fmt(v.d)}</time>${v.a?`<span>${esc(v.a)}</span>`:''}</div></a>`;
+const row = (x,kind) => `<a class="row" ${linkAttrs(x,kind)}>${firstImg(x)?`<span class="row-thumb">${imgTag(x,'row-img')}<span class="badge ${kind==='audio'?'saf':''}">${I[kind]}</span></span>`:`<span class="ic ${kind==='audio'?'saf':''}">${I[kind]}</span>`}<span class="t">${esc(x.t)}${x.dur||x.a?`<span class="meta" style="font-weight:400;margin-top:2px">${esc(x.a||x.dur)}</span>`:''}</span><time>${fmt(x.d)}</time></a>`;
 
 function mediaBlock(sel, id){
   const tabs = [['video','Смотреть'],['audio','Слушать'],['read','Читать']];
@@ -725,7 +754,7 @@ function normCalendar(days){
 function applyDoc(id, data){
   if(!data) return;
   if(['video','audio','read','news'].includes(id) && Array.isArray(data.items) && data.items.length){
-    DATA[id] = data.items.map(x=>({t:x.title, url:x.url, d:x.date, a:x.author||'', slug:x.slug||'', sub:x.subtitle||'', img:/^https:\/\/(media\.)?harekrishna\.ru\//.test(x.image||'')?x.image:''}));
+    DATA[id] = data.items.map(x=>({t:x.title, url:x.url, d:x.date, a:x.author||'', slug:x.slug||'', sub:x.subtitle||'', img:okImg(x.image)?x.image:'', thumbs:(x.thumbs||[]).filter(okImg)}));
   } else if(id==='home'){
     if(data.banner && data.banner.title) state.home.banner = data.banner;
     if(data.guru && data.guru.text) state.home.guru = data.guru;
@@ -774,12 +803,14 @@ async function loadArticle(slug){
       else if(v.type==='file' && /^https:\/\/(media\.)?harekrishna\.ru\//.test(v.src||'')) html += `<div class="video-frame"><video controls preload="metadata" playsinline src="${esc(v.src)}"></video></div>`;
       else if(v.type==='iframe' && /^https:\/\/(rutube\.ru|vk\.com)\//.test(v.src||'')) html += `<div class="video-frame"><iframe src="${esc(v.src)}" title="${esc(d.title||o.t)}" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe></div>`;
     });
+    if(!(d.video||[]).length){ const o2 = {...o, thumbs:[...(o.thumbs||[]), ...(d.images||[])].filter(okImg)}; if(o2.thumbs.length) html += imgTag(o2,'art-hero',true); }
     (d.audio||[]).slice(0,6).forEach((u,i)=>{ if(/^https?:\/\//.test(u)) html += `<div class="panel audio-player"><div style="display:flex;gap:12px;align-items:center"><span class="ic saf" style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--saffron-soft);color:var(--saffron);flex:none">${I.audio}</span><b style="min-width:0">${esc((d.audio.length>1?`Часть ${i+1}. `:'')+(d.title||o.t))}</b></div><audio controls preload="none" src="${esc(u)}"></audio></div>`; });
     if(d.html) html += `<article class="prose article-text">${d.html.replace(/#(\d{1,2}:\d{2}:\d{2})#/g,'<span class="tc">$1</span>')}</article>`;
     else if(!html) html += `<div class="panel"><p>У этого материала нет текста для предпросмотра.</p></div>`;
     html += `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-copy="1">Скопировать ссылку</button>${orig?`<a class="btn" href="${esc(orig)}" target="_blank" rel="noopener">Источник: harekrishna.ru ${I.ext}</a>`:''}</div>`;
   }
   box.innerHTML = html;
+  upgradeImages();
 }
 function render(keep){
   const y = window.scrollY;
@@ -789,6 +820,7 @@ function render(keep){
   document.querySelectorAll('nav.main a').forEach(a=>{ if(a.getAttribute('href')==='#'+MAIN[view]) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
   document.querySelectorAll('nav.tabs a').forEach(a=>{ const t=a.dataset.tab; const on = t==='home'?view==='home':MAIN[view]===t; if(on) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
   document.title = view==='home' ? 'Шри Чайтанья Сарасват Матх · новый дизайн (бета)' : view==='article' ? (state.itemObj?.t||'Материал')+' · Шри Чайтанья Сарасват Матх' : (TITLES[view]||state.item||'') + ' · HareKrishna.ru';
+  upgradeImages();
   if(keep===true){ window.scrollTo(0,y); return; }
   closeDrawer();
   window.scrollTo(0,0);

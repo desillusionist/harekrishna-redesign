@@ -132,7 +132,7 @@ function parseHome($) {
   if (days.length >= 2) home.calendar = days;
   const newsBox = $('h2').filter((_, h) => clean($(h).text()) === 'Новости').first().closest('.content-block');
   if (newsBox.length) { const items = parseList(cheerio.load(newsBox.html() || '')); if (items.length >= 3) home.news = items; }
-  const banner = $('a[href*="/tag/"]').filter((_, a) => $(a).find('img[alt]').length || clean($(a).text()).length > 10).first();
+  const banner = $('a[href*="/tag/"]').filter((_, a) => clean($(a).find('img[alt]').attr('alt')).length > 5).first();
   if (banner.length) {
     const title = clean($(banner).find('img').attr('alt')) || clean($(banner).text());
     const image = absUrl($(banner).find('img').attr('src') || '');
@@ -259,6 +259,16 @@ async function main() {
     } catch (e) { report.push(`item ${it.slug}: ${e.message}`); }
   }
   for (const k of ['video', 'audio', 'read', 'news']) (site[k] || []).forEach(x => { delete x.kind; x.slug = x.slug || (x.url && x.url.startsWith(BASE) ? slugOf(x.url) : ''); });
+  // Picture candidates, best first; the site keeps the largest one that loads.
+  for (const k of ['video', 'audio', 'read', 'news']) for (const x of site[k] || []) {
+    const item = x.slug ? await readJson(path.join(ITEMS, x.slug + '.json'), null) : null;
+    const c = [];
+    const yt = (item?.video || []).find(v => v.type === 'youtube');
+    if (yt) c.push(`https://i.ytimg.com/vi/${yt.id}/maxresdefault.jpg`, `https://i.ytimg.com/vi/${yt.id}/hqdefault.jpg`);
+    c.push(...(item?.images || []).slice(0, 2));
+    if (x.image) c.push(x.image);
+    x.thumbs = [...new Set(c.filter(Boolean))];
+  }
   const gotSomething = report.some(r => !/kept old/.test(r) && !r.startsWith('item ')) || fetched > 0;
   if (gotSomething) site.fetchedAt = new Date().toISOString();
   else { console.log(report.concat('nothing new; data left unchanged').join('\n')); process.exitCode = 1; return; }
