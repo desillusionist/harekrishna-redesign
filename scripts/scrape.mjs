@@ -218,7 +218,9 @@ async function main() {
     } catch (e) { report.push(`item ${it.slug}: ${e.message}`); }
   }
   for (const k of ['video', 'audio', 'read', 'news']) (site[k] || []).forEach(x => { x.slug = x.slug || (x.url && x.url.startsWith(BASE) ? slugOf(x.url) : ''); });
-  site.fetchedAt = new Date().toISOString();
+  const gotSomething = report.some(r => !/kept old/.test(r) && !r.startsWith('item ')) || fetched > 0;
+  if (gotSomething) site.fetchedAt = new Date().toISOString();
+  else { console.log(report.concat('nothing new; data left unchanged').join('\n')); process.exitCode = 1; return; }
   await fs.writeFile(path.join(DATA, 'site.json'), JSON.stringify(site, null, 1));
   console.log(report.concat(`new item pages: ${fetched}`, `requests: ${requests}`).join('\n'));
 }
