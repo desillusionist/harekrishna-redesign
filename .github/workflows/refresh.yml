@@ -1,8 +1,11 @@
 name: Refresh data from harekrishna.ru
 
 on:
-  schedule:
-    - cron: '17 */3 * * *'   # every 3 hours
+  # harekrishna.ru refuses GitHub's servers (HTTP 403), so the schedule is off.
+  # Run the reader from a computer that can reach the site, or re-enable this
+  # with a self-hosted runner (runs-on: self-hosted).
+  # schedule:
+  #   - cron: '17 */3 * * *'   # every 3 hours
   workflow_dispatch:
     inputs:
       debug:
