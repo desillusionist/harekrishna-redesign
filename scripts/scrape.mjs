@@ -64,6 +64,7 @@ function splitTitle($, $a) {
   const first = full.split('|')[0].trim();
   let bold = clean($a.find('b').map((_, b) => clean($(b).text())).get().filter(t => t && first.includes(t)).join(''));
   let title = stripQuotes(bold.replace(/^«\s*/, '«')) || '';
+  title = title.split(/»\.?\s*«/)[0];
   title = title.replace(/^«|»\.?$/g, '').replace(/\.$/, '').trim();
   if (title.length < 3) { const m = /^«([^»]+)»/.exec(first); title = m ? m[1] : stripQuotes(first); }
   const dm = /\.\s+(\d{1,2}\s+[а-яё]+\s+\d{4}\s+года.*|\d{4}(?:-е)?\s+год.*)$/i.exec(title);

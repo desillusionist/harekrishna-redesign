@@ -752,6 +752,7 @@ const app = document.getElementById('app');
 const MAIN = {mission:'mission','mission-history':'mission','mission-teachers':'mission','mission-homily':'mission','mission-projects':'mission',donation:'mission',teaching:'teaching',library:'library',media:'media',archive:'media',news:'media',calendar:'calendar',online:'online',zoom:'online'};
 const ART = new Map();
 async function loadArticle(slug){
+  await new Promise(r=>setTimeout(r,0)); // let render() put #artBody on the page first
   let d = ART.get(slug);
   if(!d){
     try { const r = await fetch('data/items/'+encodeURIComponent(slug)+'.json'); d = r.ok ? await r.json() : {missing:true}; }
