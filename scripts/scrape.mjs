@@ -12,7 +12,7 @@ const DEBUG = process.argv.includes('--debug');
 const MAX_NEW_ITEMS = Number(process.env.MAX_NEW_ITEMS || 40);
 const PER_LIST = 12;
 const PAUSE_MS = Number(process.env.PAUSE_MS || 1500);
-const UA = 'harekrishna-redesign-preview/1.0 (+https://github.com; read-only, cached every few hours)';
+const UA = 'Mozilla/5.0 (compatible; harekrishna-redesign-preview/1.0; read-only, every 3 hours; +https://github.com/desillusionist/harekrishna-redesign)';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const MONTHS = {января:1,февраля:2,марта:3,апреля:4,мая:5,июня:6,июля:7,августа:8,сентября:9,октября:10,ноября:11,декабря:12};
@@ -30,11 +30,21 @@ const clean = s => (s || '').replace(/\s+/g, ' ').trim();
 const stripQuotes = s => clean(s).replace(/^«(.*)»\.?$/, '$1').replace(/\.$/, '');
 const ARTICLE_RE = /^\/\d{4}\/\d{2}\/[^/?#]+\/?$/;
 
-let requests = 0;
+let requests = 0, failures = 0;
 async function get(url) {
   if (requests++) await sleep(PAUSE_MS);
-  const res = await fetch(url, { headers: { 'User-Agent': UA, 'Accept-Language': 'ru' } });
-  if (!res.ok) throw new Error(`${res.status} for ${url}`);
+  if (failures >= 3) throw new Error(`skipped after repeated refusals: ${url}`);
+  const res = await fetch(url, { headers: { 'User-Agent': UA, 'Accept': 'text/html,application/xhtml+xml', 'Accept-Language': 'ru,en;q=0.8' } });
+  if (!res.ok) {
+    failures++;
+    if (DEBUG && failures === 1) {
+      console.log(`--- refused ${res.status} ${url}`);
+      for (const [k, v] of res.headers) console.log(`    ${k}: ${v}`);
+      console.log((await res.text()).replace(/\s+/g, ' ').slice(0, 800));
+    }
+    throw new Error(`${res.status} for ${url}`);
+  }
+  failures = 0;
   return res.text();
 }
 
