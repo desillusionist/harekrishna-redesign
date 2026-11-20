@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Шри Чайтанья Сарасват Матх · новый дизайн (бета)</title>
+<meta name="description" content="Бета-версия нового дизайна harekrishna.ru. Материалы: harekrishna.ru">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1E3A72">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sticky slim header + mobile bottom tab bar; content in a 1180px column; home = hero quote, "today" strip, media tabs, news, projects */
+:root{
+  --bg:#F6F7FB; --surface:#FFFFFF; --surface-2:#EEF1F8;
+  --ink:#16213A; --ink-2:#4A5672; --line:#DCE1EC;
+  --indigo:#1E3A72; --indigo-soft:#E3E9F7;
+  --saffron:#D9741A; --saffron-soft:#FCEBDB;
+  --tulsi:#2F7D5B; --tulsi-soft:#DFF1E8;
+  --hero-a:#1B2F5E; --hero-b:#2C4C8C; --on-hero:#FFFFFF; --on-hero-2:#C9D5F0;
+  --font-display:"Prata", Georgia, "Times New Roman", serif;
+  --font-body:"Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --r:14px; --maxw:1180px;
+  --gutter-l:max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r:max(16px, env(safe-area-inset-right, 0px));
+}
+:root{color-scheme:light}
+*{box-sizing:border-box}
+img{max-width:100%;height:auto}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--surface)}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--saffron);outline-offset:2px;border-radius:6px}
+h1,h2,h3{font-family:var(--font-display);font-weight:400;line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4.4vw,44px)}
+h2{font-size:clamp(22px,2.8vw,30px)}
+h3{font-size:19px}
+p{margin:0}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:var(--gutter-l);padding-right:var(--gutter-r)}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--saffron)}
+.muted{color:var(--ink-2)}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 15px var(--font-body);text-decoration:none;cursor:pointer}
+.btn:hover{border-color:var(--indigo)}
+.btn.primary{background:var(--saffron);border-color:var(--saffron);color:#fff}
+.btn.primary:hover{filter:brightness(1.05)}
+.link-more{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--indigo);text-decoration:none;min-height:44px}
+.link-more:hover{text-decoration:underline}
+svg.i{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* proto ribbon */
+.proto{background:var(--indigo-soft);color:var(--ink-2);font-size:13px}
+.proto .wrap{padding-block:6px;display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap}
+
+/* header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;min-height:64px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;min-width:0}
+.brand-mark{width:38px;height:38px;flex:none}
+.brand b{display:block;font-family:var(--font-display);font-weight:400;font-size:18px;line-height:1.1}
+.brand small{display:block;font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+nav.main{display:none;margin-left:auto;gap:2px}
+nav.main a{position:relative;padding:10px 12px;border-radius:10px;text-decoration:none;font-weight:500;color:var(--ink-2)}
+nav.main a:hover{background:var(--surface-2);color:var(--ink)}
+nav.main a[aria-current="page"]{color:var(--ink)}
+nav.main a[aria-current="page"]::after{content:"";position:absolute;left:12px;right:12px;bottom:4px;height:2px;border-radius:2px;background:var(--saffron)}
+.top-actions{display:flex;gap:4px;margin-left:auto}
+nav.main + .top-actions{margin-left:8px}
+.icon-btn{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.icon-btn:hover{background:var(--surface-2)}
+.lang{font:600 13px var(--font-body);width:auto;padding:0 10px}
+@media (min-width: 1000px){nav.main{display:flex}.only-mobile{display:none!important}}
+
+/* utility bar (desktop) */
+.utility{display:none;background:var(--surface-2);font-size:14px}
+.utility .wrap{display:flex;gap:20px;padding-block:6px;flex-wrap:wrap}
+.utility a{text-decoration:none;color:var(--ink-2);display:inline-flex;gap:6px;align-items:center}
+.utility a:hover{color:var(--ink)}
+@media (min-width:1000px){.utility{display:block}}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(10,16,32,.45);z-index:70}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(360px,88vw);background:var(--surface);z-index:80;overflow:auto;
+  padding:calc(12px + env(safe-area-inset-top,0px)) max(16px, env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) 20px;
+  transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column;gap:8px}
+.drawer.open{transform:none}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.drawer details{border-bottom:1px solid var(--line)}
+.drawer summary,.drawer > a.d-link{list-style:none;display:flex;justify-content:space-between;align-items:center;min-height:52px;font-weight:600;font-size:17px;cursor:pointer;text-decoration:none}
+.drawer summary::-webkit-details-marker{display:none}
+.drawer details[open] summary svg{transform:rotate(180deg)}
+.drawer > a.d-link{border-bottom:1px solid var(--line)}
+.drawer .sub{display:grid;padding:0 0 10px}
+.drawer .sub a{min-height:44px;display:flex;align-items:center;text-decoration:none;color:var(--ink-2);padding-left:12px}
+.drawer .sub a:hover{color:var(--ink)}
+.drawer .d-util{display:grid;gap:4px;margin-top:12px}
+.drawer .d-util a{display:flex;gap:10px;align-items:center;min-height:44px;text-decoration:none;color:var(--ink-2)}
+
+/* bottom tab bar (mobile) */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--surface);border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(5,1fr);padding:4px max(4px, env(safe-area-inset-right,0px)) calc(4px + env(safe-area-inset-bottom,0px)) max(4px, env(safe-area-inset-left,0px))}
+nav.tabs a,nav.tabs button{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;justify-content:center;font:500 11px var(--font-body);color:var(--ink-2);text-decoration:none;background:none;border:0;cursor:pointer;border-radius:10px}
+nav.tabs [aria-current="page"]{color:var(--saffron)}
+@media (min-width:1000px){nav.tabs{display:none}}
+main{padding-bottom:88px}
+@media (min-width:1000px){main{padding-bottom:0}}
+
+/* sections */
+.section{padding-block:40px}
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.section-head .left{display:grid;gap:6px}
+
+/* hero */
+.hero{background:linear-gradient(135deg,var(--hero-a),var(--hero-b));color:var(--on-hero);position:relative;overflow:hidden}
+.hero .wrap{padding-block:40px 44px;display:grid;gap:28px;position:relative}
+.hero .wrap > *{min-width:0}
+@media (max-width:999px){.brand small{display:none}.brand b{font-size:16px}.brand .br{display:block}}
+.hero-mandala{position:absolute;right:-120px;top:-120px;width:460px;height:460px;opacity:.12;pointer-events:none}
+.hero .eyebrow{color:#F6B46E}
+.event-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:var(--on-hero);border-radius:999px;padding:8px 14px;text-decoration:none;font-weight:500;font-size:14px;max-width:100%}
+.event-chip .dot{width:8px;height:8px;border-radius:50%;background:#F6B46E;flex:none}
+.event-chip span.t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+blockquote.guru{margin:0;display:grid;gap:14px;max-width:780px}
+blockquote.guru p{font-family:var(--font-display);font-size:clamp(22px,3.2vw,34px);line-height:1.35}
+blockquote.guru footer{color:var(--on-hero-2);font-size:15px}
+.hero-ctas{display:flex;gap:10px;flex-wrap:wrap}
+.hero .btn{background:transparent;color:var(--on-hero);border-color:rgba(255,255,255,.35)}
+.hero .btn.primary{background:#E8862E;border-color:#E8862E;color:#fff}
+
+/* today strip */
+.today{margin-top:-1px}
+.today-grid{display:grid;gap:12px;grid-template-columns:1fr}
+@media (min-width:760px){.today-grid{grid-template-columns:1.2fr 1fr 1fr}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:10px;align-content:start;min-width:0}
+.tile .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--ink-2)}
+.fast{display:flex;gap:14px;align-items:center}
+.date-badge{width:58px;flex:none;text-align:center;border-radius:12px;background:var(--saffron-soft);color:var(--saffron);padding:6px 0}
+.date-badge b{display:block;font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
+.date-badge small{font-size:12px;font-weight:600;text-transform:uppercase}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--saffron-soft);color:var(--saffron);width:max-content}
+.pill.green{background:var(--tulsi-soft);color:var(--tulsi)}
+.pill.blue{background:var(--indigo-soft);color:var(--indigo)}
+.live-row{display:flex;gap:10px;align-items:center}
+.live-dot{width:10px;height:10px;border-radius:50%;background:#D93A3A;box-shadow:0 0 0 0 rgba(217,58,58,.5);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(217,58,58,.45)}70%{box-shadow:0 0 0 10px rgba(217,58,58,0)}100%{box-shadow:0 0 0 0 rgba(217,58,58,0)}}
+
+/* tabs (media) */
+.seg{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:999px;width:max-content;max-width:100%;overflow-x:auto}
+.seg button{border:0;background:transparent;min-height:40px;padding:0 16px;border-radius:999px;font:600 14px var(--font-body);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(20,30,60,.12)}
+
+.cards{display:grid;gap:16px;grid-template-columns:1fr}
+@media (min-width:640px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:1000px){.cards.c3{grid-template-columns:repeat(3,1fr)}}
+.card{display:grid;gap:10px;text-decoration:none;color:inherit;min-width:0;align-content:start}
+.thumb{aspect-ratio:16/9;max-width:100%;border-radius:12px;position:relative;overflow:hidden;display:grid;place-items:center}
+.thumb .play{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;color:#1E3A72}
+.thumb .dur{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:2px 6px;border-radius:6px;font-variant-numeric:tabular-nums}
+.card h3{font-family:var(--font-body);font-weight:600;font-size:16px;line-height:1.35}
+.card:hover h3{color:var(--indigo);text-decoration:underline}
+.meta{font-size:13px;color:var(--ink-2);display:flex;gap:10px;flex-wrap:wrap}
+
+.list{display:grid;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line);text-decoration:none;color:inherit;min-width:0}
+.row:hover{background:var(--surface-2)}
+.row .t{font-weight:600;min-width:0}
+.row .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--indigo-soft);color:var(--indigo)}
+.row .ic.saf{background:var(--saffron-soft);color:var(--saffron)}
+.row time{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* two-column home */
+.split{display:grid;gap:32px;grid-template-columns:1fr}
+@media (min-width:1000px){.split{grid-template-columns:1.6fr 1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:grid;gap:14px;min-width:0}
+.important a{display:flex;gap:12px;align-items:flex-start;padding:10px 0;text-decoration:none;border-bottom:1px dashed var(--line)}
+.important a:last-child{border-bottom:0}
+.important a:hover .t{color:var(--indigo);text-decoration:underline}
+
+/* projects */
+.projects{display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}
+@media (min-width:640px){.projects{grid-template-columns:repeat(3,1fr)}}
+@media (min-width:1000px){.projects{grid-template-columns:repeat(4,1fr)}}
+.proj{display:grid;gap:4px;padding:14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);text-decoration:none;min-width:0}
+.proj b{font-weight:600;overflow-wrap:anywhere}
+.proj span{font-size:13px;color:var(--ink-2)}
+.proj:hover{border-color:var(--indigo)}
+
+/* calendar */
+.cal{display:grid;gap:10px}
+.cal-item{display:grid;grid-template-columns:64px 1fr;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;min-width:0}
+.cal-item.is-fast{border-left:4px solid var(--saffron)}
+.cal-item .d{text-align:center}
+.cal-item .d b{display:block;font-size:26px;line-height:1;font-variant-numeric:tabular-nums}
+.cal-item .d small{font-size:12px;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+.cal-item ul{margin:6px 0 0;padding-left:18px;color:var(--ink-2);display:grid;gap:2px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chip{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font:500 14px var(--font-body);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* page header */
+.page-head{background:var(--surface);border-bottom:1px solid var(--line)}
+.page-head .wrap{padding-block:28px 24px;display:grid;gap:10px}
+.crumbs{font-size:13px;color:var(--ink-2);display:flex;gap:6px;flex-wrap:wrap}
+.crumbs a{text-decoration:none}
+.crumbs a:hover{text-decoration:underline}
+.subnav{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-top:6px}
+.subnav a{flex:none;min-height:40px;display:inline-flex;align-items:center;padding:0 14px;border-radius:999px;background:var(--surface-2);text-decoration:none;font-weight:500;font-size:14px}
+.subnav a[aria-current="true"]{background:var(--indigo);color:var(--surface)}
+.prose{max-width:68ch;display:grid;gap:16px;font-size:17px}
+.prose h2{margin-top:12px}
+.timeline{display:grid;gap:0;border-left:2px solid var(--line);margin-left:6px}
+.timeline div{position:relative;padding:0 0 18px 20px}
+.timeline div::before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--saffron)}
+.timeline b{display:block;font-variant-numeric:tabular-nums;color:var(--saffron)}
+
+.teachers{display:grid;gap:14px;grid-template-columns:1fr}
+@media (min-width:760px){.teachers{grid-template-columns:repeat(3,1fr)}}
+.teacher{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:10px;align-content:start}
+.avatar{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-display);font-size:24px;color:#fff}
+
+.books{display:grid;gap:16px;grid-template-columns:repeat(2,1fr)}
+@media (min-width:760px){.books{grid-template-columns:repeat(4,1fr)}}
+.book{display:grid;gap:8px;text-decoration:none;min-width:0;align-content:start}
+.cover{aspect-ratio:2/3;max-width:100%;border-radius:6px 12px 12px 6px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;box-shadow:inset 6px 0 0 rgba(0,0,0,.18)}
+.cover b{font-family:var(--font-display);font-weight:400;font-size:15px;line-height:1.25;overflow-wrap:anywhere}
+.cover small{font-size:11px;opacity:.85}
+.book .t{font-weight:600;font-size:14px;line-height:1.3}
+.book:hover .t{color:var(--indigo);text-decoration:underline}
+
+.online-grid{display:grid;gap:14px;grid-template-columns:1fr}
+@media (min-width:760px){.online-grid{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:1000px){.online-grid{grid-template-columns:repeat(3,1fr)}}
+.links{display:flex;gap:6px;flex-wrap:wrap}
+.links a{font-size:13px;font-weight:600;padding:6px 10px;border-radius:8px;background:var(--surface-2);text-decoration:none;min-height:32px;display:inline-flex;align-items:center}
+.links a:hover{background:var(--indigo-soft);color:var(--indigo)}
+.audio-player .play-btn{width:56px;height:56px;flex:none;border-radius:50%;border:0;background:var(--saffron);color:#fff;display:grid;place-items:center;cursor:pointer}
+.audio-player .bar{height:6px;border-radius:3px;background:var(--surface-2);margin:10px 0 6px;overflow:hidden}
+.audio-player .bar span{display:block;width:8%;height:100%;background:var(--saffron)}
+.audio-player .meta{justify-content:space-between}
+.reader-skel{display:grid;gap:10px}
+.video-frame{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:var(--r);overflow:hidden;background:#000}
+.video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.audio-player audio{width:100%;margin-top:12px}
+.article-text{font-size:18px;line-height:1.7}
+.article-text img{border-radius:10px;margin:8px 0}
+.article-text a{color:var(--indigo)}
+.article-text blockquote{margin:0;padding:4px 0 4px 18px;border-left:3px solid var(--saffron);color:var(--ink-2)}
+.reader-skel span{display:block;height:12px;border-radius:6px;background:var(--surface-2)}
+.reader-skel i{display:block;height:8px}
+.note{font-size:13px;color:var(--ink-2);background:var(--surface-2);border-radius:10px;padding:10px 14px}
+
+/* search */
+.search-panel{position:fixed;inset:0;z-index:90;background:var(--bg);overflow:auto;padding-top:env(safe-area-inset-top,0px)}
+.search-panel .wrap{padding-block:16px;display:grid;gap:14px}
+.search-bar{display:flex;gap:8px;align-items:center}
+.search-bar input{flex:1;min-width:0;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:16px var(--font-body);padding:0 14px}
+
+/* footer */
+footer.site{background:var(--surface);border-top:1px solid var(--line);margin-top:24px}
+footer.site .wrap{padding-block:36px;display:grid;gap:28px}
+.f-cols{display:grid;gap:24px;grid-template-columns:1fr}
+@media (min-width:760px){.f-cols{grid-template-columns:1.4fr 1fr 1fr}}
+.f-cols h4{margin:0 0 10px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.f-cols ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.f-cols a{text-decoration:none}
+.f-cols a:hover{text-decoration:underline}
+.f-bottom{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;font-size:13px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:16px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:95;max-width:calc(100% - 32px)}
+@media (min-width:1000px){.toast{bottom:24px}}
+</style>
+</head>
+<body>
+
+<div class="proto"><div class="wrap"><span>Бета-версия нового дизайна. Все материалы взяты с <a href="https://harekrishna.ru/" target="_blank" rel="noopener">harekrishna.ru</a></span><span id="liveStatus">Загружаем свежие материалы…</span></div></div>
+
+<div class="utility"><div class="wrap">
+  <a href="#online"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/></svg>Трансляции онлайн</a>
+  <a href="#zoom"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></svg>Встречи в Zoom и Telegram</a>
+  <a href="#" data-toast="Подписка на рассылку: avadhutswami.ru/subscription"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Подписка на рассылку</a>
+  <a href="#sendnews"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h16M6 16l10-10 2 2-10 10H6z"/></svg>Прислать новость</a>
+</div></div>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#home" aria-label="На главную">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="19" fill="var(--indigo)"/>
+        <g fill="none" stroke="#F6B46E" stroke-width="1.6">
+          <path d="M20 9c3 4 3 9 0 13-3-4-3-9 0-13z"/>
+          <path d="M10 18c5 0 9 2 10 6-5 0-9-2-10-6zM30 18c-5 0-9 2-10 6 5 0 9-2 10-6z"/>
+          <path d="M11 28h18"/>
+        </g>
+      </svg>
+      <span style="min-width:0"><b><span class="br">Шри Чайтанья </span><span class="br">Сарасват Матх</span></b><small>Миссия в России и странах СНГ</small></span>
+    </a>
+    <nav class="main" aria-label="Основное меню">
+      <a href="#mission">Миссия</a>
+      <a href="#teaching">Учение</a>
+      <a href="#library">Библиотека</a>
+      <a href="#media">Медиа</a>
+      <a href="#calendar">Календарь</a>
+      <a href="#online">Онлайн</a>
+    </nav>
+    <div class="top-actions">
+      <button class="icon-btn" id="searchBtn" aria-label="Поиск"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+      <button class="icon-btn lang" id="langBtn" aria-label="Язык">RU</button>
+      <button class="icon-btn only-mobile" id="menuBtn" aria-label="Меню" aria-expanded="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" aria-label="Меню сайта" aria-hidden="true">
+  <div class="drawer-head"><span class="eyebrow">Меню</span><button class="icon-btn" id="closeDrawer" aria-label="Закрыть меню"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <details open><summary>Миссия <svg class="i" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></summary>
+    <div class="sub"><a href="#mission">О миссии</a><a href="#mission-history">История миссии</a><a href="#mission-teachers">Учителя</a><a href="#mission-homily">Проповедь и проповедники</a><a href="#mission-projects">Проекты</a><a href="#donation">Пожертвования</a></div>
+  </details>
+  <a class="d-link" href="#teaching">Учение</a>
+  <a class="d-link" href="#library">Библиотека</a>
+  <a class="d-link" href="#archive">Аудиоархив</a>
+  <a class="d-link" href="#media">Смотреть · Слушать · Читать</a>
+  <a class="d-link" href="#news">Новости</a>
+  <a class="d-link" href="#tags">Тэги</a>
+  <a class="d-link" href="#" data-toast="WIKI откроется на harekrishna.ru/wiki">WIKI</a>
+  <div class="d-util">
+    <a href="#zoom"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></svg>Встречи в Zoom и Telegram</a>
+    <a href="#" data-toast="Подписка на рассылку: avadhutswami.ru/subscription"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Подписка на рассылку</a>
+    <a href="#sendnews"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h16M6 16l10-10 2 2-10 10H6z"/></svg>Прислать новость</a>
+    <a href="#contacts"><svg class="i" viewBox="0 0 24 24"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Контакты</a>
+  </div>
+</aside>
+
+<main id="app"></main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="f-cols">
+      <div style="display:grid;gap:10px">
+        <h4>Руководство миссии</h4>
+        <p><span class="muted">Основатель-ачарья</span><br>Шрила Б. Р. Шридхар Дев-Госвами Махарадж</p>
+        <p><span class="muted">Севаите-президент-ачарья</span><br>Шрила Б. С. Говинда Дев-Госвами Махарадж</p>
+        <p><span class="muted">Ачарья ШЧСМ в России и странах СНГ</span><br>Шрила Б. Б. Авадхут Махарадж</p>
+      </div>
+      <div><h4>Разделы</h4><ul>
+        <li><a href="#home">Главная</a></li><li><a href="#mission">Миссия</a></li><li><a href="#teaching">Учение</a></li>
+        <li><a href="#library">Библиотека</a></li><li><a href="#archive">Аудиоархив</a></li><li><a href="#calendar">Вайшнавский календарь</a></li></ul></div>
+      <div><h4>Участие</h4><ul>
+        <li><a href="#donation">Пожертвования</a></li><li><a href="#" data-toast="Вьяса-пуджа: подношения на отдельном сайте">Вьяса-пуджа</a></li>
+        <li><a href="#sendnews">Прислать новость</a></li><li><a href="#contacts">Контактная информация</a></li><li><a href="#sitemap">Карта сайта</a></li></ul></div>
+    </div>
+    <p class="note">Facebook и Instagram признаны экстремистскими организациями и запрещены на территории Российской Федерации.</p>
+    <div class="f-bottom"><span>2003–2026 © Шри Чайтанья Сарасват Матх</span><span>При использовании материалов активная ссылка на harekrishna.ru обязательна</span></div>
+  </div>
+</footer>
+
+<nav class="tabs" aria-label="Быстрые разделы">
+  <a href="#home" data-tab="home"><svg class="i" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg>Главная</a>
+  <a href="#media" data-tab="media"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3z"/></svg>Медиа</a>
+  <a href="#calendar" data-tab="calendar"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Календарь</a>
+  <a href="#online" data-tab="online"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/></svg>Онлайн</a>
+  <button id="tabMenu" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Ещё</button>
+</nav>
+
+<div class="search-panel" id="searchPanel" hidden>
+  <div class="wrap">
+    <div class="search-bar"><input id="q" type="search" placeholder="Поиск по видео, аудио, статьям и книгам" aria-label="Поиск"><button class="icon-btn" id="closeSearch" aria-label="Закрыть поиск"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="filters" id="qHints"></div>
+    <div class="list" id="qResults"></div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const I = {
+  play:'<svg class="i" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg>',
+  audio:'<svg class="i" viewBox="0 0 24 24"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/></svg>',
+  read:'<svg class="i" viewBox="0 0 24 24"><path d="M4 5h6a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h6z"/></svg>',
+  news:'<svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>',
+  arrow:'<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  ext:'<svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+  star:'<svg class="i" viewBox="0 0 24 24"><path d="m12 3 2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg>',
+  pin:'<svg class="i" viewBox="0 0 24 24"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+};
+I.video = I.play;
+const MON = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const fmt = d => { const [y,m,dd]=d.split('-'); return `${+dd} ${MON[+m-1]}`; };
+
+const DATA = {
+  video:[
+    {t:'Сердце и сияние Шримати Радхарани',d:'2026-11-17',dur:'48:12',a:'Шрила Б. С. Говинда Махарадж'},
+    {t:'Место Нитьянанды в Пури',d:'2026-11-17',dur:'31:40',a:'Шрила Б. С. Говинда Махарадж'},
+    {t:'День ухода Свами Прабхупады',d:'2026-11-13',dur:'1:12:05',a:'Шрила Б. Б. Авадхут Махарадж'},
+    {t:'Исключительная преданность Шрилы Прабхупады указанию Шри Гуру',d:'2026-11-13',dur:'22:18',a:'Шрила Б. Р. Шридхар Махарадж'},
+    {t:'Праздник ухода Вишва-варенья Триданди Свами Шримада Бхактиведанты Свами Махараджа',d:'2026-11-13',dur:'56:47',a:'Шрила Б. Б. Авадхут Махарадж'},
+    {t:'Гирирадж-Говардхан — прибежище преданных',d:'2026-11-10',dur:'39:02',a:'Шрила Б. С. Говинда Махарадж'},
+  ],
+  audio:[
+    {t:'Гопаштами. День ухода Гададхара Даса Госвами, Дхананджайи Пандита и Шриниваса Ачарьи. Вайшнава-чаритра',d:'2026-11-17',dur:'54:20'},
+    {t:'Шринивас Ачарья и проповедь в Бенгалии',d:'2026-11-17',dur:'18:44'},
+    {t:'Шринивас Ачарья и украденные книги',d:'2026-11-17',dur:'14:09'},
+    {t:'История жизни и преданность Шрилы Шриниваса Ачарьи',d:'2026-11-17',dur:'26:31'},
+    {t:'Гададхар Дас и Гададхар Пандит: сияние и сердце',d:'2026-11-17',dur:'21:56'},
+  ],
+  read:[
+    {t:'Откровение — Его воля',d:'2026-11-17'},
+    {t:'Шрила Шринивас Ачарья',d:'2026-11-17'},
+    {t:'Шрила Бхакти Ракшак Шридхар Махарадж и Шрила Бхактиведанта Свами Прабхупада. Трансцендентные отношения',d:'2026-11-13'},
+    {t:'Восходящее и заходящее солнце',d:'2026-11-13'},
+    {t:'Аватар и аватари',d:'2026-11-13'},
+  ],
+  news:[
+    {t:'Архивная фотография. Общение Шрилы Б. Р. Шридхара Дев-Госвами Махараджа и Шрилы А. Ч. Бхактиведанты Свами Прабхупады',d:'2026-11-13'},
+    {t:'Архивные фотографии. Шрила Бхактиведанта Свами Махарадж Прабхупада наносит визит Шриле Бхакти Ракшаку Шридхару Дев-Госвами Махараджу',d:'2026-11-13'},
+    {t:'Гирирадж-Говардхан — прибежище преданных',d:'2026-11-10'},
+    {t:'Уход Шрипада Бхакти Лалиты Акинчана Махараджа',d:'2026-11-10'},
+    {t:'Парикрама по Вриндавану: арати, храм Шри Радха-Валлабхи, храм Шри Нрисимхадева, даршан Шри Радха-Дамодара',d:'2026-11-09'},
+  ],
+  calendar:[
+    {d:'2026-11-20',w:'пт',fast:true,items:['Шри Уттхана экадаши. Пост (Москва)','День явления Триданди Свами Шримада Бхакти Даиты Мадхавы Госвами Махараджа','День ухода Шрилы Гауракишоры Даса Бабаджи Махараджа','Шри Бхишма-панчака']},
+    {d:'2026-11-21',w:'сб',paran:'08:16–10:55',items:['Парана (Москва) 08:16–10:55']},
+    {d:'2026-11-23',w:'пн',items:['День ухода Шрилы Бхугарбхи Госвами','День ухода Шрилы Кашишвары Пандита']},
+    {d:'2026-11-24',w:'вт',fest:true,items:['Раса-ятра Шри Кришны','День явления Шрилы Нимбарка Ачарьи','День ухода Шрилы Сундарананды Тхакура','Завершение Чатурмасьи и Ниямы-севы для начавших в пурниму']},
+    {d:'2026-11-30',w:'пн',fest:true,items:['Оран-шаштхи','Праздник явления Шри Шри Нитай-Чайтаньи Джиу в Шри Пури-дхаме, Шри Чайтанья Сарасват Матх']},
+    {d:'2026-12-04',w:'пт',fast:true,items:['Утпанна экадаши. Пост (Москва)','День ухода Шриюкты Дхананджаи Даса Прабху']},
+    {d:'2026-12-05',w:'сб',paran:'08:40–11:06',items:['Парана (Москва) 08:40–11:06','День ухода Шрилы Нарахари Саракара Тхакура','День ухода Шрилы Калии Кришнадаса']},
+  ],
+  books:[
+    {t:'Поиск Шри Кришны, Прекрасной Реальности',a:'Шрила Б. Р. Шридхар Махарадж',c:['#1E3A72','#2F5FA8'],k:'Книги'},
+    {t:'Шри Гуру и его милость',a:'Шрила Б. Р. Шридхар Махарадж',c:['#7A3B12','#C46A2A'],k:'Книги'},
+    {t:'Субъективная эволюция сознания',a:'Шрила Б. Р. Шридхар Махарадж',c:['#244E3E','#3F8A69'],k:'Книги'},
+    {t:'Золотой вулкан божественной любви',a:'Шрила Б. Р. Шридхар Махарадж',c:['#8A5A00','#D49A1E'],k:'Книги'},
+    {t:'Любовный поиск потерянного слуги',a:'Шрила Б. Р. Шридхар Махарадж',c:['#4B2A6B','#7E54A8'],k:'Книги'},
+    {t:'Бхагавад Гита. Жемчужина мудрости Востока',a:'Шрила Б. Р. Шридхар Махарадж',c:['#1F4F6B','#3A86A8'],k:'Книги'},
+    {t:'Шри Шри Нитьянанда Махимамритам',a:'Шрила Б. С. Говинда Махарадж',c:['#6B1F2E','#A83A50'],k:'Аудио'},
+    {t:'Путь домой, в мир Прекрасной Реальности',a:'Шрила Б. Р. Шридхар Махарадж',c:['#2B3A55','#506A94'],k:'Аудио'},
+    {t:'Шри Чайтанья Бхагавата. Ади-кханда',a:'Шрила Вриндаван Дас Тхакур',c:['#5A4A12','#9C8226'],k:'Аудио'},
+    {t:'Домашний уют. Введение в мир внутренней полноты',a:'Шрила Б. Р. Шридхар Махарадж',c:['#3C5A2A','#6E9A4A'],k:'Аудио'},
+    {t:'Шри Джайва-Дхарма (Вечная религия души)',a:'Шрила Бхактивинод Тхакур',c:['#123A5A','#2A6A9A'],k:'Аудио'},
+    {t:'Журнал «Шри Гаудия Даршан»',a:'Подшивка выпусков',c:['#5A1E5A','#9A3E8A'],k:'Журналы'},
+  ],
+  projects:[
+    ['scsmath.com','Международный сайт матха'],['scsmath.ru','Сайт матха на русском'],['sridharmaharaj.ru','Архив Шрилы Шридхара Махараджа'],
+    ['govindamaharaj.com','Архив Шрилы Говинды Махараджа'],['avadhutswami.ru','Сайт Шрилы Авадхута Махараджа'],['goswami.app','Приложение'],
+    ['saraswati.pro','Проект'],['audioveda.ru','Аудиокниги'],['scsm-radio.ru','Интернет-радио ШЧСМ'],
+    ['ekadash.ru','Экадаши'],['bharati.ru','Проект'],['lifeinservice.ru','Жизнь в служении'],
+  ],
+  online:[
+    {c:'Москва',dei:'Шри Шри Гуру-Гауранга Гандхарвика-Радха-Раман-Сундарджиу и Шри Гирирадж-Говардханджиу',s:'Пн–Сб с 20:00, Вс с 18:00',l:['YouTube','Instagram*','Facebook*'],live:true},
+    {c:'Лахта, Санкт-Петербург',dei:'Шри Шри Гуру-Гауранга Радха-Мадхава-Сундарджиу',l:['YouTube','VK','Instagram*']},
+    {c:'Sri Gupta Govardhan, Таиланд',l:['Livestream','YouTube','Instagram*','Facebook*']},
+    {c:'Govinda Land, Украина',dei:'Шри Шри Гуру-Гаурангасундар Гауранги-Говинда Гиридхариджиу',l:['Instagram*']},
+    {c:'Киев, Украина',l:['Facebook*','Instagram*']},
+    {c:'Томск',l:['Instagram*','YouTube']},
+    {c:'Хабаровск',l:['Instagram*','E-mail для вопросов']},
+    {c:'Сухум · Узунджа · Агой',dei:'Абхазия, Крым, Краснодарский край',l:['Instagram*']},
+    {c:'Vida de ASHRAM, Бразилия',l:['Facebook*']},
+  ],
+  teachersOnline:[
+    ['Шрила Бхакти Бимал Авадхут Махарадж',['Telegram','Instagram*','Facebook*']],
+    ['Шрила Бхакти Ранджан Мадхусудан Махарадж',['YouTube','Instagram*','Facebook*']],
+    ['Шрила Бхакти Севан Хришикеш Махарадж',['Telegram','Instagram*','Facebook*']],
+    ['Шрила Бхакти Ашрая Данди Махарадж',['Telegram','YouTube','Instagram*']],
+    ['Шрила Бхакти Амрита Махавир Махарадж',['Telegram','Instagram*','Facebook*']],
+    ['Сахадев Прабху',['VK','Facebook*']],
+  ],
+};
+
+const TH = [['#1B2F5E','#3A63B0'],['#6B2E10','#D9741A'],['#1F4A3A','#3F8A69'],['#3E2460','#7A54A8'],['#5A3A0A','#C48A2A'],['#163A52','#2F7AA8']];
+const thumb = (i,dur) => `<div class="thumb" style="background:linear-gradient(135deg,${TH[i%6][0]},${TH[i%6][1]})">
+  <svg viewBox="0 0 100 56" style="position:absolute;inset:0;width:100%;height:100%;opacity:.18" aria-hidden="true"><g fill="none" stroke="#fff" stroke-width=".6">${[10,18,26,34].map(r=>`<circle cx="78" cy="28" r="${r}"/>`).join('')}</g></svg>
+  <span class="play">${I.play}</span>${dur?`<span class="dur">${dur}</span>`:''}</div>`;
+
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => /^https:\/\/harekrishna\.ru\//.test(u||'') ? u : null;
+const REG = new Map();
+const reg = (x,kind) => { const k = kind+'|'+(x.url||x.t); REG.set(k,{...x,kind}); return k; };
+const linkAttrs = (x,kind) => x.slug ? `href="#a-${esc(x.slug)}" data-key="${esc(reg(x,kind))}"` : `href="#item" data-key="${esc(reg(x,kind))}"`;
+const videoCard = (v,i) => `<a class="card" ${linkAttrs(v,'video')}>${thumb(i,v.dur)}<h3>${esc(v.t)}</h3><div class="meta"><time>${fmt(v.d)}</time>${v.a?`<span>${esc(v.a)}</span>`:''}</div></a>`;
+const row = (x,kind) => `<a class="row" ${linkAttrs(x,kind)}><span class="ic ${kind==='audio'?'saf':''}">${I[kind]}</span><span class="t">${esc(x.t)}${x.dur||x.a?`<span class="meta" style="font-weight:400;margin-top:2px">${esc(x.a||x.dur)}</span>`:''}</span><time>${fmt(x.d)}</time></a>`;
+
+function mediaBlock(sel, id){
+  const tabs = [['video','Смотреть'],['audio','Слушать'],['read','Читать']];
+  const body = sel==='video'
+    ? `<div class="cards c3">${DATA.video.slice(0,6).map(videoCard).join('')}</div>`
+    : `<div class="list">${DATA[sel].map(x=>row(x,sel)).join('')}</div>`;
+  const more = {video:'Все видео',audio:'Все аудиозаписи',read:'Все публикации'}[sel];
+  return `<div class="seg" role="tablist" aria-label="Тип материалов">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${k===sel}" data-media="${k}" data-target="${id}">${l}</button>`).join('')}</div>
+  <div style="margin-top:18px">${body}</div>
+  <div style="margin-top:8px;display:flex;gap:18px;flex-wrap:wrap"><a class="link-more" href="#media">${more} ${I.arrow}</a>${sel==='audio'?`<a class="link-more" href="#" data-toast="Интернет-радио ШЧСМ: scsm-radio.ru">Интернет-радио ШЧСМ ${I.ext}</a>`:''}</div>`;
+}
+
+function calItem(c){
+  const [y,m,d]=c.d.split('-');
+  const tag = c.fast?'<span class="pill">Экадаши · пост</span>':c.paran?'<span class="pill green">Парана</span>':c.fest?'<span class="pill blue">Праздник</span>':'';
+  return `<div class="cal-item ${c.fast?'is-fast':''}"><div class="d"><b>${+d}</b><small>${MON[+m-1]}, ${c.w}</small></div>
+  <div style="min-width:0">${tag}<ul>${c.items.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div></div>`;
+}
+
+const pageHead = (title, crumbs, lead, sub) => `<section class="page-head"><div class="wrap">
+  <div class="crumbs"><a href="#home">Главная</a>${crumbs.map(c=>`<span>/</span>${c[1]?`<a href="#${c[1]}">${c[0]}</a>`:`<span>${c[0]}</span>`}`).join('')}</div>
+  <h1>${title}</h1>${lead?`<p class="muted" style="max-width:68ch;font-size:17px">${lead}</p>`:''}${sub||''}</div></section>`;
+
+const missionSub = cur => `<nav class="subnav" aria-label="Раздел Миссия">${[['mission','О миссии'],['mission-history','История'],['mission-teachers','Учителя'],['mission-homily','Проповедь'],['mission-projects','Проекты'],['donation','Пожертвования']].map(([h,l])=>`<a href="#${h}" aria-current="${h===cur}">${l}</a>`).join('')}</nav>`;
+
+const V = {
+home(){
+  const today = new Date().toISOString().slice(0,10);
+  const upcoming = DATA.calendar.filter(c=>c.d>=today);
+  const next = upcoming.find(c=>c.fast) || DATA.calendar.find(c=>c.fast) || DATA.calendar[0];
+  const paranDay = next && DATA.calendar.find(c=>c.d>next.d && c.paran);
+  const H = state.home;
+  const fastName = next ? next.items[0].replace(/\.?\s*Пост.*$/,'').replace(/\.$/,'') : '';
+  return `
+  <section class="hero"><svg class="hero-mandala" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#fff" stroke-width="1">${Array.from({length:16},(_,i)=>`<ellipse cx="100" cy="55" rx="14" ry="45" transform="rotate(${i*22.5} 100 100)"/>`).join('')}<circle cx="100" cy="100" r="22"/><circle cx="100" cy="100" r="95"/></g></svg>
+    <div class="wrap">
+      <a class="event-chip" ${safeUrl(H.banner.url)?`href="${esc(H.banner.url)}" target="_blank" rel="noopener"`:'href="#calendar"'}><span class="dot"></span><span class="t">${esc(H.banner.title)}</span></a>
+      <div style="display:grid;gap:12px"><span class="eyebrow">Слово Гуру</span>
+      <blockquote class="guru"><p>«${esc(H.guru.text.replace(/[«»]/g,''))}»</p>
+      <footer>${esc(H.guru.author)} · ${esc(H.guru.source)}</footer></blockquote></div>
+      <div class="hero-ctas"><a class="btn primary" href="#mission">Узнать о миссии</a><a class="btn" href="#teaching">Начать с учения</a></div>
+    </div></section>
+
+  <section class="today"><div class="wrap" style="padding-block:20px 0">
+    <div class="today-grid">
+      <a class="tile" href="#calendar" style="text-decoration:none"><span class="k">Ближайший пост</span>
+        <div class="fast"><div class="date-badge"><b>${+next.d.slice(8)}</b><small>${MON[+next.d.slice(5,7)-1]}</small></div>
+        <div style="min-width:0"><b>${esc(fastName)}</b><p class="muted" style="font-size:14px">${paranDay?`Парана ${fmt(paranDay.d)}, ${esc(paranDay.paran)} (Москва)`:'Время параны смотрите в календаре'}</p></div></div></a>
+      <a class="tile" href="#online" style="text-decoration:none"><span class="k">Сегодня онлайн</span>
+        <div class="live-row"><span class="live-dot" aria-hidden="true"></span><b>Москва, вечерняя трансляция</b></div><p class="muted" style="font-size:14px">Пн–Сб с 20:00, Вс с 18:00 по Москве</p></a>
+      <a class="tile" href="#zoom" style="text-decoration:none"><span class="k">Встречи с проповедниками</span>
+        <b>Расписание в Zoom и Telegram</b><p class="muted" style="font-size:14px">Анонсы всех запланированных встреч</p></a>
+    </div></div></section>
+
+  <section class="section"><div class="wrap">
+    <div class="section-head"><div class="left"><span class="eyebrow">Новое</span><h2>Смотреть, слушать, читать</h2></div></div>
+    <div id="homeMedia">${mediaBlock(state.media,'homeMedia')}</div>
+  </div></section>
+
+  <section class="section" style="padding-top:8px"><div class="wrap split">
+    <div style="min-width:0"><div class="section-head"><div class="left"><span class="eyebrow">Жизнь миссии</span><h2>Новости</h2></div><a class="link-more" href="#news">Архив новостей ${I.arrow}</a></div>
+      <div class="list">${DATA.news.map(n=>row(n,'news')).join('')}</div>
+      <div style="margin-top:14px"><a class="btn" href="#sendnews">Пришлите вашу новость</a></div></div>
+    <aside style="display:grid;gap:16px;align-content:start;min-width:0">
+      <div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3>Вайшнавский календарь</h3><span class="pill blue">Москва</span></div>
+        <div class="cal">${DATA.calendar.slice(0,3).map(calItem).join('')}</div>
+        <a class="link-more" href="#calendar">Календарь на 2026–2027 г. ${I.arrow}</a></div>
+      <div class="panel important"><h3>Это важно</h3>
+        <a href="#zoom"><span class="pill">Zoom</span><span class="t">Анонсы всех запланированных встреч с проповедниками миссии</span></a>
+        <a href="#item" data-title="30-летие российской организации ШЧСМ"><span class="pill blue">30 лет</span><span class="t">30-летие российской организации ШЧСМ</span></a>
+        <a href="#item" data-title="Помощь в работе над архивом"><span class="pill green">Служение</span><span class="t">Помощь в работе над архивом Шрилы Говинды Махараджа</span></a>
+        <a href="#archive"><span class="pill blue">Архив</span><span class="t">Русскоязычные архивы Шрилы Говинды Махараджа (по темам) и Шрилы Шридхара Махараджа (по датам)</span></a>
+      </div>
+    </aside></div></section>
+
+  <section class="section" style="background:var(--surface-2)"><div class="wrap">
+    <div class="section-head"><div class="left"><span class="eyebrow">Экосистема</span><h2>Наши проекты</h2></div><a class="link-more" href="#mission-projects">Все проекты ${I.arrow}</a></div>
+    <div class="projects">${DATA.projects.map(([u,d])=>`<a class="proj" href="#" data-toast="Откроется ${u}"><b>${u}</b><span>${d}</span></a>`).join('')}</div>
+  </div></section>`;
+},
+mission(){
+  return pageHead('Миссия Шри Чайтанья Сарасват Матх',[['Миссия']],'Международная вайшнавская миссия, следующая учению Шри Чайтаньи Махапрабху.',missionSub('mission')) + `
+  <section class="section"><div class="wrap split"><div class="prose">
+    <p>Линия преемственности миссии идёт от Шрилы Рупы Госвами через Шрилу Бхактивинода Тхакура (1838–1915) к Шриле Бхактисиддханте Сарасвати Тхакуру (1874–1937).</p>
+    <p>Матх основал в 1941 году Шрила Бхакти Ракшак Шридхар Махарадж (1895–1988). С 1988 по 2010 год миссию возглавлял его ученик Шрила Бхакти Сундар Говинда Дев-Госвами Махарадж, совершивший 22 мировых проповеднических турне. Сейчас миссию возглавляет Шрила Бхакти Нирмал Ачарья Махарадж.</p>
+    <p>В России миссия объединяет последователей более чем в тридцати городах. Общины есть также в Украине, Беларуси, странах Балтии и Закавказье.</p>
+    <p>Понять миссию лучше всего в общении с её проповедниками и через книги учителей линии.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn primary" href="#contacts">Найти центр рядом</a><a class="btn" href="#mission-teachers">Учителя</a></div>
+  </div>
+  <aside class="panel" style="align-content:start"><h3>Хронология</h3><div class="timeline">
+    <div><b>1838–1915</b>Шрила Бхактивинод Тхакур</div><div><b>1874–1937</b>Шрила Бхактисиддханта Сарасвати Тхакур</div>
+    <div><b>1941</b>Основание Шри Чайтанья Сарасват Матха</div><div><b>1988–2010</b>Шрила Б. С. Говинда Дев-Госвами Махарадж во главе миссии</div>
+    <div><b>Сегодня</b>Шрила Бхакти Нирмал Ачарья Махарадж</div></div></aside></div></section>`;
+},
+'mission-teachers'(){
+  const T=[['Ш','Шрила Б. Р. Шридхар Дев-Госвами Махарадж','Основатель-ачарья','#1E3A72'],['Г','Шрила Б. С. Говинда Дев-Госвами Махарадж','Севаите-президент-ачарья','#C46A2A'],['А','Шрила Б. Б. Авадхут Махарадж','Ачарья ШЧСМ в России и странах СНГ','#2F7D5B']];
+  return pageHead('Учителя',[['Миссия','mission'],['Учителя']],'',missionSub('mission-teachers'))+`<section class="section"><div class="wrap"><div class="teachers">${T.map(t=>`<a class="teacher" href="#item" data-title="${t[1]}" style="text-decoration:none"><div class="avatar" style="background:${t[3]}">${t[0]}</div><span class="eyebrow">${t[2]}</span><h3>${t[1]}</h3><span class="link-more">Биография и материалы ${I.arrow}</span></a>`).join('')}</div></div></section>`;
+},
+'mission-history'(){ return pageHead('История миссии',[['Миссия','mission'],['История']],'',missionSub('mission-history'))+placeholder('Страница «История миссии» переносится с текущего сайта без изменений текста. В прототипе показан только шаблон раздела.'); },
+'mission-homily'(){ return pageHead('Проповедь и проповедники',[['Миссия','mission'],['Проповедь']],'',missionSub('mission-homily'))+placeholder('Список проповедников с карточками: фото, город, ссылки на трансляции и встречи. Наполняется из текущего раздела.'); },
+'mission-projects'(){ return pageHead('Проекты',[['Миссия','mission'],['Проекты']],'Сайты, приложения и архивы миссии.',missionSub('mission-projects'))+`<section class="section"><div class="wrap"><div class="projects">${DATA.projects.map(([u,d])=>`<a class="proj" href="#" data-toast="Откроется ${u}"><b>${u}</b><span>${d}</span></a>`).join('')}</div></div></section>`; },
+donation(){ return pageHead('Пожертвования',[['Миссия','mission'],['Пожертвования']],'Поддержите служение миссии: издание книг, архивы, трансляции и праздники.',missionSub('donation'))+`<section class="section"><div class="wrap"><div class="teachers">
+  ${[['Книги и переводы','Издание и перевод книг учителей линии'],['Архивы','Оцифровка и расшифровка лекций'],['Праздники','Проведение фестивалей и программ']].map(x=>`<div class="teacher"><span class="eyebrow">Направление</span><h3>${x[0]}</h3><p class="muted">${x[1]}</p></div>`).join('')}
+  </div><p class="note" style="margin-top:20px">Реквизиты и способы перевода берутся из текущей страницы «Пожертвования». В прототипе они не показаны.</p></div></section>`; },
+teaching(){
+  const B = DATA.books.slice(0,5);
+  return pageHead('Учение',[['Учение']],'Знакомство с философией сознания Кришны в Шри Чайтанья Сарасват Матхе начинается с книг Шрилы Шридхара Махараджа. Основы учения изложены в пяти книгах, и лучше изучать их по порядку, под руководством опытных вайшнавов в центрах матха.')+`
+  <section class="section"><div class="wrap">
+    <div class="section-head"><div class="left"><span class="eyebrow">Порядок чтения</span><h2>Пять основных книг</h2></div></div>
+    <div class="list">${B.map((b,i)=>`<a class="row" href="#item" data-title="${b.t}"><span class="ic" style="font-family:var(--font-display);font-size:20px">${i+1}</span><span class="t">${b.t}<span class="meta" style="font-weight:400">${b.a}</span></span>${I.arrow}</a>`).join('')}</div>
+  </div></section>
+  <section class="section" style="padding-top:0"><div class="wrap"><div class="cards c3">
+    ${[['Основные моменты сиддханты','Философия вайшнавизма кратко'],['Гаудия-вайшнавизм','Вайшнавизм и гаудия-вайшнавизм'],['«Поиск Шри Кришны, Прекрасной Реальности»','Избранное из книги Шрилы Б. Р. Шридхара Махараджа']].map(x=>`<a class="panel" href="#item" data-title="${x[0]}" style="text-decoration:none"><span class="eyebrow">Статья</span><h3>${x[0]}</h3><p class="muted">${x[1]}</p></a>`).join('')}
+  </div>
+  <div class="panel" style="margin-top:20px"><h3>Также смотрите</h3><div class="links"><a href="#" data-toast="pearlsofwisdom.ru">Жемчужины духовной мудрости ${I.ext}</a><a href="#" data-toast="5-st.ru">5 шагов к бессмертию ${I.ext}</a></div></div>
+  </div></section>`;
+},
+library(){
+  return pageHead('Библиотека',[['Библиотека']],'Книги, журналы и аудиокниги учителей линии.')+`
+  <section class="section"><div class="wrap">
+    <div class="filters" id="libFilters">${['Все','Книги (85)','Журналы (66)','Аудио (17)'].map((f,i)=>`<button class="chip" aria-pressed="${i===0}" data-lib="${f.split(' ')[0]}">${f}</button>`).join('')}</div>
+    <div class="books" id="books">${books('Все')}</div>
+  </div></section>`;
+},
+media(){
+  return pageHead('Смотреть · Слушать · Читать',[['Медиа']],'Новые лекции, аудиозаписи и публикации. Ленты доступны и по RSS.')+`<section class="section"><div class="wrap" id="pageMedia">${mediaBlock(state.media,'pageMedia')}</div></section>`;
+},
+archive(){
+  return pageHead('Аудиоархив',[['Аудиоархив']],'Русскоязычные архивы лекций учителей миссии.')+`<section class="section"><div class="wrap"><div class="cards">
+    <a class="panel" href="#item" data-title="Архив Шрилы Говинды Махараджа" style="text-decoration:none"><span class="eyebrow">По темам</span><h3>Шрила Б. С. Говинда Дев-Госвами Махарадж</h3><p class="muted">Лекции и беседы, сгруппированные по темам</p><span class="link-more">Открыть архив ${I.arrow}</span></a>
+    <a class="panel" href="#item" data-title="Архив Шрилы Шридхара Махараджа" style="text-decoration:none"><span class="eyebrow">По датам · с транскрипциями</span><h3>Шрила Б. Р. Шридхар Дев-Госвами Махарадж</h3><p class="muted">Беседы в хронологическом порядке</p><span class="link-more">Открыть архив ${I.arrow}</span></a>
+  </div>
+  <div style="margin-top:28px"><h2 style="margin-bottom:14px">Последние аудиозаписи</h2><div class="list">${DATA.audio.map(a=>row(a,'audio')).join('')}</div></div></div></section>`;
+},
+news(){ return pageHead('Новости',[['Новости']],'',`<div><a class="btn" href="#sendnews">Пришлите вашу новость</a></div>`)+`<section class="section"><div class="wrap"><div class="list">${DATA.news.concat(DATA.read.slice(0,3)).map(n=>row(n,'news')).join('')}</div></div></section>`; },
+calendar(){
+  return pageHead('Вайшнавский календарь',[['Календарь']],'Даты для Москвы. При очень короткой паране пост можно прервать после её окончания, но до заката.')+`
+  <section class="section"><div class="wrap">
+    <div class="filters" id="calFilters">${[['all','Все дни'],['fast','Посты'],['fest','Праздники']].map(([k,l],i)=>`<button class="chip" aria-pressed="${k===state.cal}" data-cal="${k}">${l}</button>`).join('')}<button class="chip" data-toast="Город: Москва. В полной версии можно выбрать свой">Москва ▾</button></div>
+    <div class="cal" id="calList">${calList()}</div>
+    <a class="link-more" style="margin-top:12px" href="#" data-toast="Полный календарь до Гаура-пурнимы 2027">Календарь на 2026–2027 г. ${I.arrow}</a>
+  </div></section>`;
+},
+online(){
+  return pageHead('Онлайн-трансляции',[['Онлайн']],'Трансляции из культурных центров и страницы учителей.',`<div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn" href="#zoom">Встречи в Zoom и Telegram</a></div>`)+`
+  <section class="section"><div class="wrap">
+    <div class="panel" style="margin-bottom:20px;border-color:var(--saffron)"><div class="live-row"><span class="live-dot"></span><span class="eyebrow">По расписанию</span></div>
+      <h3>Беседа Шрилы Бхакти Судхира Госвами Махараджа</h3><p class="muted">Пн, Ср, Пт в 15:30 по Москве. Вопросы можно задать в чате трансляции или по почте.</p></div>
+    <h2 style="margin-bottom:14px">Культурные центры</h2>
+    <div class="online-grid">${DATA.online.map(o=>`<div class="panel"><div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><h3>${o.c}</h3>${o.live?'<span class="pill">Ежедневно</span>':''}</div>${o.dei?`<p class="muted" style="font-size:14px">${o.dei}</p>`:''}${o.s?`<p style="font-size:14px"><b>${o.s}</b></p>`:''}<div class="links">${o.l.map(l=>`<a href="#" data-toast="Ссылка на ${l.replace('*','')}">${l}</a>`).join('')}</div></div>`).join('')}</div>
+    <h2 style="margin:32px 0 14px">Страницы учителей</h2>
+    <div class="list">${DATA.teachersOnline.map(([n,l])=>`<div class="row" style="grid-template-columns:1fr"><span class="t">${n}</span><div class="links">${l.map(x=>`<a href="#" data-toast="Ссылка на ${x.replace('*','')}">${x}</a>`).join('')}</div></div>`).join('')}</div>
+    <p class="note" style="margin-top:16px">* Facebook и Instagram признаны экстремистскими организациями и запрещены на территории Российской Федерации.</p>
+  </div></section>`;
+},
+zoom(){ return pageHead('Встречи в Zoom и Telegram',[['Онлайн','online'],['Zoom и Telegram']],'Анонсы всех запланированных встреч с проповедниками миссии.')+placeholder('Здесь будет лента анонсов с датой, временем по Москве, ведущим и кнопкой «Подключиться». Наполняется из текущего раздела.'); },
+contacts(){ return pageHead('Контакты',[['Контакты']],'Центры и общины миссии в России и странах СНГ.')+placeholder('Карта и список центров по городам с адресами и телефонами. Данные переносятся из текущей страницы «Контакты».'); },
+sendnews(){
+  return pageHead('Прислать новость',[['Новости','news'],['Прислать новость']],'Расскажите о событии в вашей общине. Редакция опубликует новость после проверки.')+`
+  <section class="section"><div class="wrap"><form class="panel" id="newsForm" style="max-width:640px;gap:16px">
+    <label style="display:grid;gap:6px"><b>Заголовок</b><input id="nf-title" required style="min-height:48px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:0 12px;font:16px var(--font-body)"></label>
+    <label style="display:grid;gap:6px"><b>Город</b><input id="nf-city" style="min-height:48px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:0 12px;font:16px var(--font-body)"></label>
+    <label style="display:grid;gap:6px"><b>Текст новости</b><textarea id="nf-text" rows="5" style="border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:12px;font:16px var(--font-body)"></textarea></label>
+    <label style="display:grid;gap:6px"><b>Фотографии</b><input id="nf-files" type="file" multiple accept="image/*"></label>
+    <button class="btn primary" type="submit" style="justify-self:start">Отправить в редакцию</button>
+  </form></div></section>`;
+},
+tags(){ const tg=['разное','тема','автор','книга','место','переводчик','цикл','стих','праздники','фестивали','проекты','издательство','транскрипции','субтитры']; return pageHead('Тэги',[['Тэги']],'Навигация по материалам по темам, авторам, книгам и местам.')+`<section class="section"><div class="wrap"><div class="filters">${tg.map(t=>`<button class="chip" data-toast="Материалы с тэгом «${t}»">${t}</button>`).join('')}</div></div></section>`; },
+sitemap(){ return pageHead('Карта сайта',[['Карта сайта']])+`<section class="section"><div class="wrap"><div class="cards c3">${[['Миссия',['mission','mission-history','mission-teachers','mission-homily','mission-projects','donation']],['Материалы',['teaching','library','archive','media','news','tags']],['Сервисы',['calendar','online','zoom','sendnews','contacts']]].map(([h,l])=>`<div class="panel"><h3>${h}</h3>${l.map(x=>`<a class="link-more" href="#${x}">${TITLES[x]}</a>`).join('')}</div>`).join('')}</div></div></section>`; },
+article(){
+  const slug = location.hash.slice(3);
+  let o = state.itemObj && state.itemObj.slug===slug ? state.itemObj : null;
+  if(!o){ for(const k of ['video','audio','read','news']){ const f=(DATA[k]||[]).find(x=>x.slug===slug); if(f){ o={...f,kind:k}; break; } } }
+  o = o || {t:'Материал', slug, kind:'read'};
+  state.itemObj = o;
+  const K = {video:['Видео','Смотреть','media'],audio:['Аудио','Слушать','archive'],read:['Статья','Читать','media'],news:['Новость','Новости','news']}[o.kind]||['Материал','Медиа','media'];
+  const same = (DATA[o.kind]||[]).filter(x=>x.slug!==o.slug).slice(0,5);
+  loadArticle(slug);
+  return `<section class="page-head"><div class="wrap">
+    <div class="crumbs"><a href="#home">Главная</a><span>/</span><a href="#${K[2]}">${K[1]}</a></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill blue">${K[0]}</span>${o.d?`<span class="pill">${fmt(o.d)}</span>`:''}</div>
+    <h1 id="artTitle">${esc(o.t)}</h1>${o.a?`<p class="muted" style="font-size:17px">${esc(o.a)}</p>`:''}</div></section>
+  <section class="section"><div class="wrap split"><div style="min-width:0;display:grid;gap:22px" id="artBody">
+    <div class="reader-skel" aria-label="Загрузка">${[96,100,88,100,72,0,100,94,100,60].map(w=>w?`<span style="width:${w}%"></span>`:'<i></i>').join('')}</div>
+  </div>
+    <aside class="panel" style="align-content:start"><h3>Ещё в разделе «${K[1]}»</h3><div class="list">${same.map(x=>row(x,o.kind)).join('')}</div></aside></div></section>`;
+},
+item(){
+  const o = state.itemObj;
+  if(!o) return pageHead(state.item||'Материал',[['Медиа','media'],['Материал']])+placeholder('Шаблон страницы материала. Откройте любую запись из разделов «Смотреть», «Слушать», «Читать» или «Новости».');
+  const K = {video:['Видео','Смотреть','media'],audio:['Аудио','Слушать','archive'],read:['Статья','Читать','media'],news:['Новость','Новости','news']}[o.kind]||['Материал','Медиа','media'];
+  const same = (DATA[o.kind]||[]).filter(x=>x.t!==o.t).slice(0,4);
+  const orig = safeUrl(o.url);
+  const player = o.kind==='video'
+    ? `<div class="thumb" style="background:linear-gradient(135deg,${TH[0][0]},${TH[0][1]});border-radius:var(--r)"><span class="play">${I.play}</span></div>`
+    : o.kind==='audio'
+    ? `<div class="panel audio-player"><div style="display:flex;gap:14px;align-items:center"><button class="play-btn" type="button" data-toast="В полной версии запись играет прямо здесь" aria-label="Слушать">${I.play}</button><div style="min-width:0;flex:1"><b>${esc(o.t)}</b><div class="bar"><span></span></div><div class="meta"><span>0:00</span><span>${esc(o.a||'')}</span></div></div></div></div>`
+    : '';
+  const body = o.kind==='read'||o.kind==='news'
+    ? `<div class="reader-skel" aria-hidden="true">${[96,100,88,100,72,0,100,94,100,60].map(w=>w?`<span style="width:${w}%"></span>`:'<i></i>').join('')}</div>`
+    : '';
+  return `<section class="page-head"><div class="wrap">
+    <div class="crumbs"><a href="#home">Главная</a><span>/</span><a href="#${K[2]}">${K[1]}</a></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill blue">${K[0]}</span><span class="pill">${fmt(o.d||'2026-11-20')}</span></div>
+    <h1>${esc(o.t)}</h1>${o.a?`<p class="muted" style="font-size:17px">${esc(o.a)}</p>`:''}</div></section>
+  <section class="section"><div class="wrap split"><div style="min-width:0;display:grid;gap:18px">${player}
+    <div class="prose">${body}
+      <p class="note">Предпросмотр внутри нового сайта. ${o.kind==='video'?'Видео':o.kind==='audio'?'Запись':'Полный текст'} ${o.kind==='read'||o.kind==='news'?'появится':'будет воспроизводиться'} здесь, когда прототип будет размещён на собственном хостинге.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-copy="1">Скопировать ссылку</button>${orig?`<a class="btn" href="${esc(orig)}" target="_blank" rel="noopener">Источник: harekrishna.ru ${I.ext}</a>`:''}</div></div></div>
+    <aside class="panel" style="align-content:start"><h3>Ещё в разделе «${K[1]}»</h3><div class="list">${same.map(x=>row(x,o.kind==='video'?'video':o.kind)).join('')}</div></aside></div></section>`;
+},
+};
+const TITLES={mission:'О миссии','mission-history':'История миссии','mission-teachers':'Учителя','mission-homily':'Проповедь и проповедники','mission-projects':'Проекты',donation:'Пожертвования',teaching:'Учение',library:'Библиотека',archive:'Аудиоархив',media:'Смотреть · Слушать · Читать',news:'Новости',tags:'Тэги',calendar:'Вайшнавский календарь',online:'Онлайн-трансляции',zoom:'Встречи в Zoom и Telegram',sendnews:'Прислать новость',contacts:'Контакты'};
+const placeholder = txt => `<section class="section"><div class="wrap"><div class="panel" style="max-width:720px;border-style:dashed"><span class="eyebrow">Шаблон раздела</span><p>${txt}</p><a class="link-more" href="#home">На главную ${I.arrow}</a></div></div></section>`;
+const books = f => DATA.books.filter(b=>f==='Все'||b.k===f).map(b=>`<a class="book" href="#item" data-title="${b.t}"><div class="cover" style="background:linear-gradient(160deg,${b.c[0]},${b.c[1]})"><small>${b.k}</small><b>${b.t}</b><small>${b.a}</small></div><span class="t">${b.t}</span><span class="meta">${b.a}</span></a>`).join('');
+const calList = () => DATA.calendar.filter(c=>state.cal==='all'||(state.cal==='fast'?(c.fast||c.paran):c.fest)).map(calItem).join('');
+
+const state = {media:'video', cal:'all', item:null, home:{
+  banner:{title:'День ухода Гауракишора Даса Бабаджи 2026',url:'https://harekrishna.ru/tag/den-ukhoda-gaurakishora'},
+  guru:{text:'Старайтесь удовлетворить слуг Кришны, и от них вы с легкостью получите результат — Кришна-прему.',author:'Шрила Бхакти Сундар Говинда Дев-Госвами Махарадж',source:'«Божественное руководство», гл. 1'}}};
+
+/* ---- Live data from harekrishna.ru ----
+   A scheduled job reads the public pages of harekrishna.ru every hour and writes them
+   to this page's database (collection "site": docs video, audio, read, news, home).
+   The page subscribes once and re-renders when new data arrives. Without the database
+   (signed-out viewer, preview) it keeps the built-in snapshot. */
+const WD = ['вс','пн','вт','ср','чт','пт','сб'];
+function normCalendar(days){
+  return (days||[]).filter(x=>x.items&&x.items.length).map(x=>{
+    const its = x.items.map(s=>String(s).trim());
+    const fast = its.some(s=>/^Пост/i.test(s));
+    const p = its.find(s=>/^Пара?н/i.test(s));
+    const pm = p && p.match(/(\d{1,2}:\d{2})\s*[—–-]\s*(\d{1,2}:\d{2})/);
+    const fest = !fast && its.some(s=>/ятра|фестиваль|праздник|явления Шри Шри/i.test(s));
+    const items = its.filter(s=>!/^Пост/i.test(s)).map(s=>/экадаши/i.test(s)&&fast?s.replace(/\.$/,'')+'. Пост (Москва)':s);
+    return {d:x.date, w:WD[new Date(x.date+'T12:00:00').getDay()], fast, paran: pm?`${pm[1]}–${pm[2]}`:null, fest, items};
+  });
+}
+function applyDoc(id, data){
+  if(!data) return;
+  if(['video','audio','read','news'].includes(id) && Array.isArray(data.items) && data.items.length){
+    DATA[id] = data.items.map(x=>({t:x.title, url:x.url, d:x.date, a:x.author||'', slug:x.slug||''}));
+  } else if(id==='home'){
+    if(data.banner && data.banner.title) state.home.banner = data.banner;
+    if(data.guru && data.guru.text) state.home.guru = data.guru;
+    const cal = normCalendar(data.calendar); if(cal.length) DATA.calendar = cal;
+  }
+}
+const fmtTime = iso => { try { return new Date(iso).toLocaleString('ru-RU',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Moscow'})+' МСК'; } catch(e){ return ''; } };
+function setStatus(kind, at){
+  const el = document.getElementById('liveStatus');
+  const site = '<a href="https://harekrishna.ru/" target="_blank" rel="noopener">harekrishna.ru</a>';
+  if(kind==='live') el.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;background:var(--tulsi)"></span>Материалы с ${site} · обновлено ${fmtTime(at)}`;
+  else if(kind==='slow') el.innerHTML = `Не удалось загрузить свежие материалы с ${site}`;
+}
+async function connectLive(){
+  try {
+    const r = await fetch('data/site.json', {cache:'no-cache'});
+    if(!r.ok) throw new Error(r.status);
+    const site = await r.json();
+    ['video','audio','read','news'].forEach(k=>applyDoc(k,{items:site[k]||[]}));
+    if(site.home) applyDoc('home', site.home);
+    setStatus('live', site.fetchedAt);
+    render(true);
+  } catch(e){ setStatus('slow'); }
+}
+const app = document.getElementById('app');
+const MAIN = {mission:'mission','mission-history':'mission','mission-teachers':'mission','mission-homily':'mission','mission-projects':'mission',donation:'mission',teaching:'teaching',library:'library',media:'media',archive:'media',news:'media',calendar:'calendar',online:'online',zoom:'online'};
+const ART = new Map();
+async function loadArticle(slug){
+  let d = ART.get(slug);
+  if(!d){
+    try { const r = await fetch('data/items/'+encodeURIComponent(slug)+'.json'); d = r.ok ? await r.json() : {missing:true}; }
+    catch(e){ d = {missing:true}; }
+    ART.set(slug,d);
+  }
+  const box = document.getElementById('artBody');
+  if(!box || location.hash.slice(3)!==slug) return;
+  const o = state.itemObj || {};
+  const orig = safeUrl(d.url||o.url);
+  let html = '';
+  if(d.missing){
+    html = `<div class="panel"><p>Этот материал ещё не загружен в новую версию. Он появится после ближайшего обновления (каждые 3 часа).</p>${orig?`<a class="btn" href="${esc(orig)}" target="_blank" rel="noopener">Открыть на harekrishna.ru ${I.ext}</a>`:''}</div>`;
+  } else {
+    (d.video||[]).forEach(v=>{
+      if(v.type==='youtube' && /^[\w-]{11}$/.test(v.id)) html += `<div class="video-frame"><iframe src="https://www.youtube-nocookie.com/embed/${v.id}" title="${esc(d.title||o.t)}" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>`;
+      else if(v.type==='iframe' && /^https:\/\/(rutube\.ru|vk\.com)\//.test(v.src||'')) html += `<div class="video-frame"><iframe src="${esc(v.src)}" title="${esc(d.title||o.t)}" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy"></iframe></div>`;
+    });
+    (d.audio||[]).slice(0,6).forEach((u,i)=>{ if(/^https?:\/\//.test(u)) html += `<div class="panel audio-player"><div style="display:flex;gap:12px;align-items:center"><span class="ic saf" style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--saffron-soft);color:var(--saffron);flex:none">${I.audio}</span><b style="min-width:0">${esc((d.audio.length>1?`Часть ${i+1}. `:'')+(d.title||o.t))}</b></div><audio controls preload="none" src="${esc(u)}"></audio></div>`; });
+    if(d.html) html += `<article class="prose article-text">${d.html}</article>`;
+    else if(!html) html += `<div class="panel"><p>У этого материала нет текста для предпросмотра.</p></div>`;
+    html += `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-copy="1">Скопировать ссылку</button>${orig?`<a class="btn" href="${esc(orig)}" target="_blank" rel="noopener">Источник: harekrishna.ru ${I.ext}</a>`:''}</div>`;
+  }
+  box.innerHTML = html;
+}
+function render(keep){
+  const y = window.scrollY;
+  const route = (location.hash||'#home').slice(1);
+  const view = route.startsWith('a-') ? 'article' : (V[route] ? route : 'home');
+  app.innerHTML = V[view]();
+  document.querySelectorAll('nav.main a').forEach(a=>{ if(a.getAttribute('href')==='#'+MAIN[view]) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
+  document.querySelectorAll('nav.tabs a').forEach(a=>{ const t=a.dataset.tab; const on = t==='home'?view==='home':MAIN[view]===t; if(on) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
+  document.title = view==='home' ? 'Шри Чайтанья Сарасват Матх · новый дизайн (бета)' : view==='article' ? (state.itemObj?.t||'Материал')+' · Шри Чайтанья Сарасват Матх' : (TITLES[view]||state.item||'') + ' · HareKrishna.ru';
+  if(keep===true){ window.scrollTo(0,y); return; }
+  closeDrawer();
+  window.scrollTo(0,0);
+}
+
+/* drawer */
+const drawer=document.getElementById('drawer'), scrim=document.getElementById('scrim'), menuBtn=document.getElementById('menuBtn');
+function openDrawer(){drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');scrim.hidden=false;menuBtn.setAttribute('aria-expanded','true');document.getElementById('closeDrawer').focus();}
+function closeDrawer(){drawer.classList.remove('open');drawer.setAttribute('aria-hidden','true');scrim.hidden=true;menuBtn.setAttribute('aria-expanded','false');}
+menuBtn.onclick=openDrawer; document.getElementById('tabMenu').onclick=openDrawer;
+document.getElementById('closeDrawer').onclick=closeDrawer; scrim.onclick=closeDrawer;
+
+/* toast */
+let tt; function toast(m){const t=document.getElementById('toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2600);}
+
+/* search */
+const sp=document.getElementById('searchPanel'), q=document.getElementById('q');
+const ALL=[...DATA.video.map(x=>({...x,k:'play',l:'Видео'})),...DATA.audio.map(x=>({...x,k:'audio',l:'Аудио'})),...DATA.read.map(x=>({...x,k:'read',l:'Статья'})),...DATA.news.map(x=>({...x,k:'news',l:'Новость'})),...DATA.books.map(x=>({t:x.t,k:'read',l:'Книга'}))];
+function doSearch(){const s=q.value.trim().toLowerCase();const res=s?ALL.filter(x=>x.t.toLowerCase().includes(s)):ALL.slice(0,6);
+  document.getElementById('qResults').innerHTML = res.length? res.map(x=>`<a class="row" href="#item" data-title="${x.t}"><span class="ic">${I[x.k]}</span><span class="t">${x.t}<span class="meta" style="font-weight:400">${x.l}</span></span>${x.d?`<time>${fmt(x.d)}</time>`:'<span></span>'}</a>`).join('') : `<p class="muted" style="padding:16px 0">Ничего не найдено по запросу «${q.value}». Попробуйте другое слово, например «Шринивас».</p>`;}
+document.getElementById('qHints').innerHTML=['Шринивас','Прабхупада','Гита','Радхарани','экадаши'].map(h=>`<button class="chip" data-q="${h}">${h}</button>`).join('');
+document.getElementById('searchBtn').onclick=()=>{sp.hidden=false;doSearch();q.focus();};
+document.getElementById('closeSearch').onclick=()=>{sp.hidden=true;};
+q.oninput=doSearch;
+
+document.getElementById('langBtn').onclick=()=>toast('English: автоматический перевод (как на текущем сайте)');
+
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-toast],[data-media],[data-lib],[data-cal],[data-q],[data-title],[data-key],[data-copy]'); if(!el) return;
+  if(el.dataset.toast){e.preventDefault();toast(el.dataset.toast);return;}
+  if(el.dataset.media){state.media=el.dataset.media;document.getElementById(el.dataset.target).innerHTML=mediaBlock(state.media,el.dataset.target);return;}
+  if(el.dataset.lib){document.querySelectorAll('[data-lib]').forEach(b=>b.setAttribute('aria-pressed',b===el));document.getElementById('books').innerHTML=books(el.dataset.lib);return;}
+  if(el.dataset.cal){state.cal=el.dataset.cal;document.querySelectorAll('[data-cal]').forEach(b=>b.setAttribute('aria-pressed',b===el));document.getElementById('calList').innerHTML=calList();return;}
+  if(el.dataset.q){q.value=el.dataset.q;doSearch();return;}
+  if(el.dataset.copy){navigator.clipboard?.writeText(location.href).then(()=>toast('Ссылка скопирована'),()=>toast('Не удалось скопировать ссылку'));return;}
+  if(el.dataset.key){state.itemObj=REG.get(el.dataset.key)||null;state.item=state.itemObj&&state.itemObj.t;sp.hidden=true; if(location.hash===el.getAttribute('href')){render();e.preventDefault();} return;}
+  if(el.dataset.title){state.itemObj=null;state.item=el.dataset.title;sp.hidden=true; if(location.hash==='#item'){render();e.preventDefault();}}
+});
+document.addEventListener('submit',e=>{e.preventDefault();toast('Новость отправлена в редакцию (в прототипе ничего не отправляется)');});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();sp.hidden=true;}});
+window.addEventListener('hashchange',()=>render());
+render();
+connectLive();
+</script>
+</body>
+</html>
